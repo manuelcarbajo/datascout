@@ -2,7 +2,7 @@
 This repo queries and gather data from different resources which can then be used to run bulk automatised annotation of microbial genomes.
 The different types of data are:
 - OrthoDB and UniProt orthology data, 
-- Rfam (non coding Rna( data, 
+- Rfam (non coding Rna data), 
 - Transcriptomic data from ENA
 
 ## Prerequisites
@@ -52,8 +52,3 @@ source setup.sh
 ```
 
 #### Run the nextflow pipeline 
-Use the command:
-```
-nextflow run main.nf  --output_path $OUTPUT_PATH --orthodb_dir $ORTHODB_FOLDER --csv_file $INPUT_CSV --assemblies_dir $ASSEMBLIES_DIR --rna_fastq_dir $FASTQ_DIR --uniprot_dir $UNIPROT_DIR  --ena_csv_dir $ENA_CSV_DIR --min_transcriptomic_reads 100 -profile codon_slur
-```
-
