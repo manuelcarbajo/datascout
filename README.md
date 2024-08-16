@@ -1,81 +1,58 @@
-## Introduction
+# AnnoDataScout
+This repo queries and gather data from different resources which can then be used to run bulk automatised annotation of microbial genomes.
+The different types of data are:
+- OrthoDB and UniProt orthology data, 
+- Rfam (non coding Rna( data, 
+- Transcriptomic data from ENA
 
-**Ensembl/datascout** is a bioinformatics pipeline that ...
+## Prerequisites
+Pipelines are intended to be run inside the Ensembl production environment.
+Please, make sure you have all the proper credential, keys, etc. set up.
 
-<!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
--->
+### Getting this repo
 
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/contributing/design_guidelines#examples for examples.   -->
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
-
-1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
-
-## Usage
-
-> [!NOTE]
-> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
-
-<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
-     Explain what rows and columns represent. For instance (please edit as appropriate):
-
-First, prepare a samplesheet with your input data that looks as follows:
-
-`samplesheet.csv`:
-
-```csv
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+```
+git clone git@github.com:manuelcarbajo/AnnoDataScout
 ```
 
-Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
+### Configuration
 
--->
+#### Refresing environment
 
-Now, you can run the pipeline using:
+This project uses nextflow-22.10.1 and can be loaded with: 
 
-<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
+module load nextflow-22.10.1-gcc-11.2.0-ju5saqw
 
-```bash
-nextflow run Ensembl/datascout \
-   -profile <docker/singularity/.../institute> \
-   --input samplesheet.csv \
-   --outdir <OUTDIR>
+
+### Initialising and running the environment
+You can recreate a conda environment with microbes_gb.yml
+
+```
+conda env create -n microbes_gb -f microbes_gb.yml
+conda activate microbes_gb
 ```
 
-> [!WARNING]
-> Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
-> see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
+After downloading AnnoDataScout define your WORK_DIR (path to AnnoDataScout git repo), ENSEMBL_ROOT_DIR (path to your other ensembl git repositories) and diamond_path (path to a copy of uniprot_euk.fa.dmnd database)
 
-## Credits
+Place a tab separated list of genomes to annotate in "$WORK_DIR/data/genomes_list.csv"  
+(following the template in "$WORK_DIR/data/genomes_list_template.csv")  
 
-Ensembl/datascout was originally written by Manuel Carbajo Martinez egmicrobe@ebi.ac.uk.
+  GENOME_NAME	TAX_ID	ENA_ACCESSION  
+  Place here a tab separated list of genomes to process.  
+  Example:  
+  toxoplasma_gondii_ME49	508771	GCA_000006565.2  
+  tripanosoma_cruzi	5693	GCA_003719455.1  
 
-We thank the following people for their extensive assistance in the development of this pipeline:
 
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
 
-## Contributions and Support
+#### Run the setup.sh script
+Execute:
+```
+source setup.sh
+```
 
-If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
-
-## Citations
-
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use Ensembl/datascout for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
-
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
-
-An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
-
-This pipeline uses code and infrastructure developed and maintained by the [nf-core](https://nf-co.re) community, reused here under the [MIT license](https://github.com/nf-core/tools/blob/master/LICENSE).
-
-> **The nf-core framework for community-curated bioinformatics pipelines.**
->
-> Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
->
-> _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).
+#### Run the nextflow pipeline 
+Use the command:
+```
+nextflow run main.nf  --output_path $OUTPUT_PATH --orthodb_dir $ORTHODB_FOLDER --csv_file $INPUT_CSV --assemblies_dir $ASSEMBLIES_DIR --rna_fastq_dir $FASTQ_DIR --uniprot_dir $UNIPROT_DIR  --ena_csv_dir $ENA_CSV_DIR --min_transcriptomic_reads 100 -profile codon_slur
+```
