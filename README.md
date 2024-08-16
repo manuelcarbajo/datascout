@@ -1,4 +1,4 @@
-# AnnoDataScout
+# DataScout
 This repo queries and gather data from different resources which can then be used to run bulk automatised annotation of microbial genomes.
 The different types of data are:
 - OrthoDB and UniProt orthology data, 
@@ -12,7 +12,7 @@ Please, make sure you have all the proper credential, keys, etc. set up.
 ### Getting this repo
 
 ```
-git clone git@github.com:manuelcarbajo/AnnoDataScout
+git clone git@github.com:manuelcarbajo/datascout
 ```
 
 ### Configuration
@@ -32,7 +32,7 @@ conda env create -n microbes_gb -f microbes_gb.yml
 conda activate microbes_gb
 ```
 
-After downloading AnnoDataScout define your WORK_DIR (path to AnnoDataScout git repo), ENSEMBL_ROOT_DIR (path to your other ensembl git repositories) and diamond_path (path to a copy of uniprot_euk.fa.dmnd database)
+After downloading datascout define your WORK_DIR (path to datascout git repo), ENSEMBL_ROOT_DIR (path to your other ensembl git repositories) and diamond_path (path to a copy of uniprot_euk.fa.dmnd database)
 
 Place a tab separated list of genomes to annotate in "$WORK_DIR/data/genomes_list.csv"  
 (following the template in "$WORK_DIR/data/genomes_list_template.csv")  
@@ -56,3 +56,4 @@ Use the command:
 ```
 nextflow run main.nf  --output_path $OUTPUT_PATH --orthodb_dir $ORTHODB_FOLDER --csv_file $INPUT_CSV --assemblies_dir $ASSEMBLIES_DIR --rna_fastq_dir $FASTQ_DIR --uniprot_dir $UNIPROT_DIR  --ena_csv_dir $ENA_CSV_DIR --min_transcriptomic_reads 100 -profile codon_slur
 ```
+
