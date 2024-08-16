@@ -3,6 +3,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Ensembl/datascout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Github : https://github.com/manuelcarbajo/datascout
     Github : https://github.com/Ensembl/datascout
 ----------------------------------------------------------------------------------------
 */
@@ -43,7 +44,7 @@ workflow ENSEMBL_DATASCOUT {
     )
 
     emit:
-    multiqc_report = DATASCOUT.out.multiqc_report // channel: /path/to/multiqc_report.html
+    datascout_report = DATASCOUT.out.datascout_report 
 
 }
 /*
@@ -86,7 +87,7 @@ workflow {
         params.outdir,
         params.monochrome_logs,
         params.hook_url,
-        ENSEMBL_DATASCOUT.out.multiqc_report
+        ENSEMBL_DATASCOUT.out.datascout_report
     )
 }
 

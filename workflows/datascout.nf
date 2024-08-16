@@ -3,9 +3,7 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
-include { FASTQC                 } from '../modules/nf-core/fastqc/main'
-include { MULTIQC                } from '../modules/nf-core/multiqc/main'
+include { NCBI_ORTHODB           } from '../modules/local/ncbi_orthodb/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -20,7 +18,7 @@ include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_data
 workflow DATASCOUT {
 
     take:
-    ch_samplesheet // channel: samplesheet read in from --input
+    ch_csv_file// channel: csv_file read in from input param --csv_file
 
     main:
 
@@ -28,13 +26,14 @@ workflow DATASCOUT {
     ch_multiqc_files = Channel.empty()
 
     //
-    // MODULE: Run FastQC
+    // MODULE: Run NCI_OrthoDB
     //
-    FASTQC (
-        ch_samplesheet
+    NCBI_ORTHODB (
+        ch_csv_file
+        orthodb_dir_ch
+        output_path_ch
+        ncbi_config_ch
     )
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
 
     //
     // Collate and save software versions
