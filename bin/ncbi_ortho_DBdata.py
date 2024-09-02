@@ -10,7 +10,7 @@ import shutil
 import re
 import requests
 import multiprocessing
-from functools import partial  
+from functools import partial
 import subprocess
 import time
 
@@ -25,7 +25,7 @@ def read_csv_file(csv_file, ncbi_config, baseDir):
     IND_ORTHODB_ACC = 3
 
     genome_paths = []
-    
+
     current_directory = os.getcwd()
     folderName = os.getcwd() + "/genome_anno/"
     current_row = "starting row"
@@ -63,16 +63,18 @@ def read_csv_file(csv_file, ncbi_config, baseDir):
                             "genome_accession": gca,
                             "log_dir": log_dir,
                             }
-                    
+
                     try:
-                        orthoDB_acc = row[IND_ORTHODB_ACC].strip()                     
+                        orthoDB_acc = row[IND_ORTHODB_ACC].strip()
                         if orthoDB_acc:
                            species_dict[gca]["orthoDB_acc"] = orthoDB_acc
                     except Exception as e:
                         print("NO row[IND_ORTHODB_ACC] or empty field" + str(e))
 
             species_dict = execute_mysql_query(ncbi_config, species_dict,baseDir)
+            print("ncbi query executed")
             get_orthoDB_data(species_dict,baseDir)
+            print("getorthodb executed")
             if not os.path.exists(folderName):
                 os.makedirs(folderName, exist_ok=True)
 
@@ -84,7 +86,7 @@ def read_csv_file(csv_file, ncbi_config, baseDir):
         print(f"An error occurred when trying to connect to ncbi: {e}\nTROUBLESHOOTING row: {current_row}\nMake sure the columns in the .csv file are tab separated\nAlso might be worth checking if the NCBI configuration file is correctly defined at {ncbi_config}")
         print(str(e))
         sys.exit()
-    
+
     # write the tax rank data to the corresponding folder of each species
     try:
         for gca in species_dict:
@@ -94,13 +96,14 @@ def read_csv_file(csv_file, ncbi_config, baseDir):
             try:
                 with open(tax_rank_file, "w") as output_file:
                     # Write the data associated with the key (gca) to the file
-                    output_file.write(str(species_dict[gca])) 
+                    output_file.write(str(species_dict[gca]))
             except IOError as e:
                 print(f"Error writing to tax_rank file '{output_file_path}': {e}")
                 sys.exit()
             except UnicodeEncodeError as e:
                 print(f"Error encoding data for tax_rank file '{output_file_path}': {e}")
                 sys.exit()
+        print("gcas in species dict finished")
     except Exception as e:
         print(f"An error occurred while storing the taxonomic rank data: {e}")
         sys.exit()
@@ -134,7 +137,7 @@ def execute_mysql_query(config_file_path, species_dict,baseDir):
                 query = ""
                 for ql in range(9):
                     query_level = "level_" + str(ql)
-                    query = "SELECT nm.taxon_id, nm.name, parent_id, nd.rank from ncbi_taxa_name nm join ncbi_taxa_node nd using(taxon_id) where name_class='scientific name' and taxon_id=" + str(query_tax) + ";" 
+                    query = "SELECT nm.taxon_id, nm.name, parent_id, nd.rank from ncbi_taxa_name nm join ncbi_taxa_node nd using(taxon_id) where name_class='scientific name' and taxon_id=" + str(query_tax) + ";"
                     cursor = connection.cursor()
                     cursor.execute(query)
                     try:
@@ -160,7 +163,7 @@ def execute_mysql_query(config_file_path, species_dict,baseDir):
                 print(f"connector error executing query: {err}")
             except Exception as err:
                 print(f"Generic error executing query : {query}\nError message: {err}")
-            log.write("  **************** get_NCBI_data END ********** \n\n")   
+            log.write("  **************** get_NCBI_data END ********** \n\n")
     # Close the cursor and connection
     if 'cursor' in locals() and cursor is not None:
         cursor.close()
@@ -198,7 +201,7 @@ def get_orthoDB_data(species_dict,baseDir):
             ncbi_id = None
             try:
                 ncbi_id = species_dict[gca]['orthoDB_acc']
-                predefined_orthodb = True 
+                predefined_orthodb = True
                 print("predefined_orthodb = " + str(ncbi_id))
                 log.write("predefined_orthodb = " + str(ncbi_id) + "\n")
             except Exception as e:
@@ -215,12 +218,12 @@ def get_orthoDB_data(species_dict,baseDir):
                         ncbi_id = species_dict[gca][current_tax]
                     log.write(" level " + str(l) + " tax " + str(species_dict[gca][current_tax]) + " ncbi_id: " + str(ncbi_id) + " predefined = " + str(predefined_orthodb) + "\n")
                     print(" level " + str(l) + " tax " + str(species_dict[gca][current_tax]) + " ncbi_id: " + str(ncbi_id) + " predefined = " + str(predefined_orthodb))
-    
+
                     out_dir_name = "%s_sequences"%ncbi_id
                     orthodb_ncbi_subfolder = os.path.join(orthodb_folder,out_dir_name)
-        
+
                     if predefined_orthodb:
-                        log.write("predefined as " + str(ncbi_id) + "\n") 
+                        log.write("predefined as " + str(ncbi_id) + "\n")
                         if ncbi_id != str(species_dict[gca][current_tax]):
                             # If a predefined taxonomy (but not the current one) has been required,
                             # skip creating this subfolder but keep looping until querying the right one.
@@ -249,14 +252,14 @@ def get_orthoDB_data(species_dict,baseDir):
                             log.write(" Combined files not there, keep looking\n")
                             #continue
 
-                    if predefined_orthodb:# implicitely (AND ncbi_id == species_dict[gca][current_tax]) 
-                        # either we´ve found the data or not but this was our target, so exit 
+                    if predefined_orthodb:# implicitely (AND ncbi_id == species_dict[gca][current_tax])
+                        # either we´ve found the data or not but this was our target, so exit
                         log.write("this was a predefined_orthodb so we are exiting search nowi\n")
                         break
             if not data_found:
                 print("NO ORTHO DB DATA")
                 log.write("NO ORTHO DB DATA \n")
-            log.write("****************** get_orthoDB_data END - Data found = " +str(data_found)  + " ************** \n")    
+            log.write("****************** get_orthoDB_data END - Data found = " +str(data_found)  + " ************** \n")
 
 
 def query_orthoDB_and_combine(ncbi_id,orthodb_ncbi_subfolder, species_dict,gca,log):
@@ -307,7 +310,7 @@ def query_orthoDB_and_combine(ncbi_id,orthodb_ncbi_subfolder, species_dict,gca,l
                     species_dict[gca]['orthoDB_acc'] = ncbi_id
                     data_found = True
                     log.write(" +++ Found combined .fa files for " + str(ncbi_id) + "\n")
-                
+
             else:
                 log.write("--- No subs for " + str(ncbi_id) + "\n")
                 print("--- No subs for " + str(ncbi_id) + "\n")
@@ -344,11 +347,11 @@ def create_combined_fa(ncbi_id,orthodb_ncbi_subfolder,orig_clusters_comb):
         logger_string += "  -Error: Failed to remove duplicates." + "\n"
         return logger_string
 
-    # Process deduplicated sequences to create a reheadered OrthoDB fasta file 
+    # Process deduplicated sequences to create a reheadered OrthoDB fasta file
     try:
         mp.rehead_fasta(dedup_out_temp,final_ortho_fasta)
         print("  +Reheading successful. Output saved to Combined_OrthoDB_" + str(ncbi_id) + "_final.out.fa" + "\n")
-        logger_string += "  +Reheading successful. Output saved to Combined_OrthoDB_" + str(ncbi_id) + "_final.out.fa" + "\n" 
+        logger_string += "  +Reheading successful. Output saved to Combined_OrthoDB_" + str(ncbi_id) + "_final.out.fa" + "\n"
     except subprocess.CalledProcessError as e:
         print("  -Error: Failed to rehead." + "\n")
         logger_string += "  -Error: Failed to rehead." + "\n"
@@ -392,7 +395,7 @@ if __name__ == "__main__":
             orthodb_folder = sys.argv[4]
         except Exception as err:
             orthodb_folder = baseDir + "/orthodb_folder"
-        
+
         print("MAIN orthodb_folder: " + orthodb_folder )
         read_csv_file(csv_file, ncbi_config, baseDir)
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

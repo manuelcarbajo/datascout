@@ -35,7 +35,7 @@ workflow PIPELINE_INITIALISATION {
     monochrome_logs   // boolean: Do not use coloured log outputs
     nextflow_cli_args //   array: List of positional nextflow CLI args
     outdir            //  string: The output directory where the results will be saved
-    input             //  string: Path to input samplesheet
+    csv_file          //  string: Path to input samplesheet
 
     main:
 
@@ -76,28 +76,15 @@ workflow PIPELINE_INITIALISATION {
     //
     // Create channel from input file provided through params.input
     //
-    Channel
-        .fromSamplesheet("input")
-        .map {
-            meta, fastq_1, fastq_2 ->
-                if (!fastq_2) {
-                    return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
-                } else {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
-                }
-        }
-        .groupTuple()
-        .map {
-            validateInputSamplesheet(it)
-        }
-        .map {
-            meta, fastqs ->
-                return [ meta, fastqs.flatten() ]
-        }
-        .set { ch_samplesheet }
+    Channel.of(params.csv_file).set { ch_csv_file }
+    Channel.of(params.outdir).set { ch_outdir }
+    Channel.of(params.orthodb_dir).set { ch_orthodb_dir }
+    //Channel.of("$baseDir/conf/ncbi_db.conf").set { ch_ncbi_conf }
 
     emit:
-    samplesheet = ch_samplesheet
+    csv_file = ch_csv_file
+    outdir = ch_outdir
+    orthodb_dir = ch_orthodb_dir
     versions    = ch_versions
 }
 

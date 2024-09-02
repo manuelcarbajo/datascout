@@ -32,7 +32,9 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_data
 workflow ENSEMBL_DATASCOUT {
 
     take:
-    samplesheet // channel: samplesheet read in from --input
+    csv_file // channel: samplesheet read in from --csv-file
+    outdir
+    orthodb_dir
 
     main:
 
@@ -40,11 +42,13 @@ workflow ENSEMBL_DATASCOUT {
     // WORKFLOW: Run pipeline
     //
     DATASCOUT (
-        samplesheet
+        csv_file,
+        outdir,
+        orthodb_dir
     )
 
-    emit:
-    datascout_report = DATASCOUT.out.datascout_report 
+    //emit:
+    //datascout_report = DATASCOUT.out.datascout_report
 
 }
 /*
@@ -67,28 +71,26 @@ workflow {
         params.monochrome_logs,
         args,
         params.outdir,
-        params.input
+        params.csv_file
     )
 
     //
     // WORKFLOW: Run main workflow
     //
     ENSEMBL_DATASCOUT (
-        PIPELINE_INITIALISATION.out.samplesheet
+        PIPELINE_INITIALISATION.out.csv_file,
+        PIPELINE_INITIALISATION.out.outdir,
+        PIPELINE_INITIALISATION.out.orthodb_dir
     )
 
     //
     // SUBWORKFLOW: Run completion tasks
     //
-    PIPELINE_COMPLETION (
-        params.email,
-        params.email_on_fail,
-        params.plaintext_email,
-        params.outdir,
-        params.monochrome_logs,
-        params.hook_url,
-        ENSEMBL_DATASCOUT.out.datascout_report
-    )
+    //PIPELINE_COMPLETION (
+    //    params.outdir,
+    //    params.monochrome_logs,
+    //    ENSEMBL_DATASCOUT.out.datascout_report
+    //)
 }
 
 /*
