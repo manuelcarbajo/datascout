@@ -4,6 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { NCBI_ORTHODB           } from "${projectDir}/modules/local/ncbi_orthodb.nf"
+include { GENOME_ASSEMBLY        } from "${projectDir}/modules/local/genome_assembly.nf"
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
 include { softwareVersionsToYAML } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
@@ -34,6 +35,13 @@ workflow DATASCOUT {
         ch_outdir,
         ch_orthodb_dir
     )
+
+    def ch_genomes = NCBI_ORTHODB.out.genomes
+        .flatten()
+        .map{ tax_ranks_path -> tuple(tax_ranks_path.getParent().getBaseName(), tax_ranks_path) }
+
+    GENOME_ASSEMBLY(ch_genomes)
+
 
     //
     // Collate and save software versions
