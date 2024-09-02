@@ -5,6 +5,7 @@
 */
 include { NCBI_ORTHODB           } from "${projectDir}/modules/local/ncbi_orthodb.nf"
 include { GENOME_ASSEMBLY        } from "${projectDir}/modules/local/genome_assembly.nf"
+include { UNIPROT_DATA           } from "${projectDir}/modules/local/uniprot_data.nf"
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
 include { softwareVersionsToYAML } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
@@ -41,6 +42,7 @@ workflow DATASCOUT {
         .map{ tax_ranks_path -> tuple(tax_ranks_path.getParent().getBaseName(), tax_ranks_path) }
 
     GENOME_ASSEMBLY(ch_genomes)
+    UNIPROT_DATA(ch_genomes)
 
 
     //
