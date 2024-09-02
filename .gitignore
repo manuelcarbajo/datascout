@@ -6,3 +6,5 @@ results/
 testing/
 testing*
 *.pyc
+conf/ncbi_db.conf
+assets/test_data/uniprot_euk.fa.dmnd
