@@ -8,6 +8,7 @@ include { GENOME_ASSEMBLY        } from "${projectDir}/modules/local/genome_asse
 include { UNIPROT_DATA           } from "${projectDir}/modules/local/uniprot_data.nf"
 include { RFAM_ACCESSIONS        } from "${projectDir}/modules/local/rfam_accessions.nf"
 include { ENA_RNA_CSV            } from "${projectDir}/modules/local/ena_rna_csv.nf"
+include { FILTER_RNA_CSV         } from "${projectDir}/modules/local/filter_rna_csv.nf"
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
 include { softwareVersionsToYAML } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
@@ -47,6 +48,8 @@ workflow DATASCOUT {
     UNIPROT_DATA(ch_genomes)
     RFAM_ACCESSIONS(ch_genomes)
     ENA_RNA_CSV(ch_genomes)
+
+    FILTER_RNA_CSV(ENA_RNA_CSV.out.rna_csv)
 
 
     //
