@@ -6,6 +6,7 @@
 include { NCBI_ORTHODB           } from "${projectDir}/modules/local/ncbi_orthodb.nf"
 include { GENOME_ASSEMBLY        } from "${projectDir}/modules/local/genome_assembly.nf"
 include { UNIPROT_DATA           } from "${projectDir}/modules/local/uniprot_data.nf"
+include { RFAM_ACCESSIONS       } from "${projectDir}/modules/local/rfam_accessions.nf"
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
 include { softwareVersionsToYAML } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
@@ -43,6 +44,7 @@ workflow DATASCOUT {
 
     GENOME_ASSEMBLY(ch_genomes)
     UNIPROT_DATA(ch_genomes)
+    RFAM_ACCESSIONS(ch_genomes)
 
 
     //
