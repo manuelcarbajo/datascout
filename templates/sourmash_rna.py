@@ -2,7 +2,7 @@ import sys
 import os
 import errno
 from datetime import datetime
-from templates import my_process as mp
+import my_process as mp
 import gzip
 from pathlib import Path
 
@@ -22,14 +22,15 @@ def sourmash_filter(tax_rank, genome_name,fastq_files,rna_fastq_folder):
     log_file = tax_rank['log_dir'] + '/sourmash.log'
     fastq_list = fastq_files.strip('[]').split(', ')
     for fq in fastq_list:
+        """
+         #TODO:  sourmash filtering here
+        """
         fq_local_symlink = "smashed_rna/" + fq
         fq_static_target = os.path.join(rna_fastq_folder, fq)
         symlink_force(fq_static_target, fq_local_symlink)
         #Path(fq_static_target).symlink_to(fq_local_symlink)
         print(fq_local_symlink + " --> " + fq_static_target)
-        """
-         #TODO:  sourmash filtering here
-        """
+
 if __name__ == "__main__":
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     if len(sys.argv) < 2:

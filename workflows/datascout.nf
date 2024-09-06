@@ -10,6 +10,7 @@ include { RFAM_ACCESSIONS        } from "${projectDir}/modules/local/rfam_access
 include { ENA_RNA_CSV            } from "${projectDir}/modules/local/ena_rna_csv.nf"
 include { FILTER_RNA_CSV         } from "${projectDir}/modules/local/filter_rna_csv.nf"
 include { DOWNLOAD_FASTQ_FILES   } from "${projectDir}/modules/local/download_fastq_files.nf"
+include { SOURMASH_RNA_CSV       } from "${projectDir}/modules/local/sourmash_rna_csv.nf"
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
 include { softwareVersionsToYAML } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
@@ -45,9 +46,9 @@ workflow DATASCOUT {
         .flatten()
         .map{ tax_ranks_path -> tuple(tax_ranks_path.getParent().getBaseName(), tax_ranks_path) }
 
-    GENOME_ASSEMBLY(ch_genomes)
-    UNIPROT_DATA(ch_genomes)
-    RFAM_ACCESSIONS(ch_genomes)
+    GENOME_ASSEMBLY(ch_genomes).set { ch_assembly }
+    UNIPROT_DATA(ch_genomes).set { ch_uniprot }
+    RFAM_ACCESSIONS(ch_genomes).set { ch_rfam }
     ENA_RNA_CSV(ch_genomes)
     FILTER_RNA_CSV(ENA_RNA_CSV.out.rna_csv)
 
@@ -59,6 +60,27 @@ workflow DATASCOUT {
 
     DOWNLOAD_FASTQ_FILES(ch_rna_filtered_to_storeDir)
 
+    ch_download_is_finished = DOWNLOAD_FASTQ_FILES.out
+                            .collect()
+                            .filter{ it.isEmpty() }//empty ch waiting for all fastq files download
+
+    ch_rna_filtered_to_sourmash = FILTER_RNA_CSV.out.filtered_rna_csv
+                                .splitCsv(elem: 1, header: false, sep: '\t' )
+                                .map{row -> tuple(row[0],row[1][3],row[2])}
+                                .groupTuple()
+                                .map{genome, fastqs, tax_ranks -> [genome, fastqs, tax_ranks[0]]}
+
+    ch_sourmash = ch_rna_filtered_to_sourmash.join(ch_download_is_finished, remainder:true)
+                                       .groupTuple()
+                                       .map{row -> tuple(row[0], row[1], row[2])}
+
+    SOURMASH_RNA_CSV(ch_sourmash)
+    ch_post_sourmash = SOURMASH_RNA_CSV.out.smashed_rna
+                                        .groupTuple()
+
+
+    ch_joined = ch_genomes.join(ch_rfam, remainder:true).join(ch_uniprot, remainder:true).join(ch_post_sourmash, remainder:true).join(ch_assembly, remainder:true)
+    ch_joined.view()
 
 
     //
