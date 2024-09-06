@@ -15,6 +15,6 @@ process GENOME_ASSEMBLY {
 
     script:
     """
-    python3 ${baseDir}/template/genome_assembly.py ${genome} ${baseDir} "${tax_ranks}"
+    python3 ${baseDir}/templates/genome_assembly.py ${genome} ${baseDir} "${tax_ranks}"
     """
 }
