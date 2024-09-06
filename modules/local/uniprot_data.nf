@@ -11,6 +11,6 @@ process UNIPROT_DATA {
 
     script:
     """
-    python ${baseDir}/bin/uniprot_data.py ${genome} ${tax_ranks} ${baseDir}
+    python ${baseDir}/templates/uniprot_data.py ${genome} ${tax_ranks} ${baseDir}
     """
 }

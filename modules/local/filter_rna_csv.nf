@@ -12,7 +12,7 @@ process FILTER_RNA_CSV {
 
     script:
     """
-    python ${baseDir}/bin/filter_rna_csv.py ${genome} ${baseDir} ${tax_ranks} ${rna_csv}
+    python ${baseDir}/templates/filter_rna_csv.py ${genome} ${baseDir} ${tax_ranks} ${rna_csv}
     """
 
 }

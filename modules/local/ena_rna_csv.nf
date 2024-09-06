@@ -11,6 +11,6 @@ process ENA_RNA_CSV {
 
     script:
     """
-    python ${baseDir}/bin/rna_seq.py ${genome} ${tax_ranks} ${baseDir}
+    python ${baseDir}/templates/rna_seq.py ${genome} ${tax_ranks} ${baseDir}
     """
 }

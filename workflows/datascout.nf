@@ -9,6 +9,7 @@ include { UNIPROT_DATA           } from "${projectDir}/modules/local/uniprot_dat
 include { RFAM_ACCESSIONS        } from "${projectDir}/modules/local/rfam_accessions.nf"
 include { ENA_RNA_CSV            } from "${projectDir}/modules/local/ena_rna_csv.nf"
 include { FILTER_RNA_CSV         } from "${projectDir}/modules/local/filter_rna_csv.nf"
+include { DOWNLOAD_FASTQ_FILES   } from "${projectDir}/modules/local/download_fastq_files.nf"
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
 include { softwareVersionsToYAML } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
@@ -48,8 +49,16 @@ workflow DATASCOUT {
     UNIPROT_DATA(ch_genomes)
     RFAM_ACCESSIONS(ch_genomes)
     ENA_RNA_CSV(ch_genomes)
-
     FILTER_RNA_CSV(ENA_RNA_CSV.out.rna_csv)
+
+    ch_rna_filtered_to_storeDir = FILTER_RNA_CSV.out.filtered_rna_csv
+                                .splitCsv(elem: 1, header: false, sep: '\t' )
+                                .map{row -> tuple(row[1][3], row[1][11])}
+                                .unique()
+                                .map{fastq_file, md5 -> [fastq_file, md5]}
+
+    DOWNLOAD_FASTQ_FILES(ch_rna_filtered_to_storeDir)
+
 
 
     //

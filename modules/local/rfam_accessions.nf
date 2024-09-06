@@ -11,6 +11,6 @@ process RFAM_ACCESSIONS {
 
     script:
     """
-    python ${baseDir}/bin/rfam_accessions.py ${genome} "${baseDir}/conf/rfam_db.conf" ${tax_ranks}
+    python ${baseDir}/templates/rfam_accessions.py ${genome} "${baseDir}/conf/rfam_db.conf" ${tax_ranks}
     """
 }
