@@ -48,7 +48,7 @@ workflow DATASCOUT {
     ENA_RNA_CSV(ch_genomes)
 
     FILTER_RNA_CSV(ENA_RNA_CSV.out.rna_csv)
-    /*
+
     ch_rna_filtered_to_storeDir = FILTER_RNA_CSV.out.filtered_rna_csv
                                 .splitCsv(elem: 1, header: false, sep: '\t' )
                                 .map{row -> tuple(row[1][3], row[1][11])}
@@ -60,7 +60,7 @@ workflow DATASCOUT {
     ch_download_is_finished = DOWNLOAD_FASTQ_FILES.out
                             .collect()
                             .filter{ it.isEmpty() }//empty ch waiting for all fastq files download
-
+    /*
     ch_rna_filtered_to_sourmash = FILTER_RNA_CSV.out.filtered_rna_csv
                                 .splitCsv(elem: 1, header: false, sep: '\t' )
                                 .map{row -> tuple(row[0],row[1][3],row[2])}
