@@ -3,14 +3,14 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { NCBI_ORTHODB           } from "${projectDir}/modules/local/ncbi_orthodb.nf"
-include { GENOME_ASSEMBLY        } from "${projectDir}/modules/local/genome_assembly.nf"
-include { UNIPROT_DATA           } from "${projectDir}/modules/local/uniprot_data.nf"
-include { RFAM_ACCESSIONS        } from "${projectDir}/modules/local/rfam_accessions.nf"
-include { ENA_RNA_CSV            } from "${projectDir}/modules/local/ena_rna_csv.nf"
-include { FILTER_RNA_CSV         } from "${projectDir}/modules/local/filter_rna_csv.nf"
-include { DOWNLOAD_FASTQ_FILES   } from "${projectDir}/modules/local/download_fastq_files.nf"
-include { SOURMASH_RNA_CSV       } from "${projectDir}/modules/local/sourmash_rna_csv.nf"
+include { NCBI_ORTHODB           } from "${projectDir}/modules/local/ncbi_orthodb/main.nf"
+include { GENOME_ASSEMBLY        } from "${projectDir}/modules/local/genome_assembly/main.nf"
+include { UNIPROT_DATA           } from "${projectDir}/modules/local/uniprot_data/main.nf"
+include { RFAM_ACCESSIONS        } from "${projectDir}/modules/local/rfam_accessions/main.nf"
+include { ENA_RNA_CSV            } from "${projectDir}/modules/local/ena_rna_csv/main.nf"
+include { FILTER_RNA_CSV         } from "${projectDir}/modules/local/filter_rna_csv/main.nf"
+include { DOWNLOAD_FASTQ_FILES   } from "${projectDir}/modules/local/download_fastq_files/main.nf"
+include { SOURMASH_RNA_CSV       } from "${projectDir}/modules/local/sourmash_rna_csv/main.nf"
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
 include { softwareVersionsToYAML } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
@@ -31,11 +31,7 @@ workflow DATASCOUT {
     main:
 
     ch_versions = Channel.empty()
-    ch_multiqc_files = Channel.empty()
 
-    //
-    // MODULE: Run NCI_OrthoDB
-    //
     NCBI_ORTHODB (
         ch_csv_file,
         ch_outdir,
@@ -45,13 +41,14 @@ workflow DATASCOUT {
     def ch_genomes = NCBI_ORTHODB.out.genomes
         .flatten()
         .map{ tax_ranks_path -> tuple(tax_ranks_path.getParent().getBaseName(), tax_ranks_path) }
-
+    ch_genomes.view()
     GENOME_ASSEMBLY(ch_genomes).set { ch_assembly }
     UNIPROT_DATA(ch_genomes).set { ch_uniprot }
     RFAM_ACCESSIONS(ch_genomes).set { ch_rfam }
     ENA_RNA_CSV(ch_genomes)
-    FILTER_RNA_CSV(ENA_RNA_CSV.out.rna_csv)
 
+    FILTER_RNA_CSV(ENA_RNA_CSV.out.rna_csv)
+    /*
     ch_rna_filtered_to_storeDir = FILTER_RNA_CSV.out.filtered_rna_csv
                                 .splitCsv(elem: 1, header: false, sep: '\t' )
                                 .map{row -> tuple(row[1][3], row[1][11])}
@@ -81,7 +78,7 @@ workflow DATASCOUT {
 
     ch_joined = ch_genomes.join(ch_rfam, remainder:true).join(ch_uniprot, remainder:true).join(ch_post_sourmash, remainder:true).join(ch_assembly, remainder:true)
     ch_joined.view()
-
+    */
 
     //
     // Collate and save software versions
