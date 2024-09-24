@@ -14,6 +14,7 @@ process NCBI_ORTHODB {
 
     script:
     """
+    mkdir -p ${params.orthodb_dir}
     python ${baseDir}/templates/ncbi_ortho_DBdata.py  ${csv_file} "${baseDir}/conf/ncbi_db.conf" ${baseDir} ${orthodb_folder}
     """
 }
