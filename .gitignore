@@ -9,3 +9,6 @@ testing*
 conf/ncbi_db.conf
 conf/rfam_db.conf
 assets/test_data/uniprot_euk.fa.dmnd
+assets/test_data/genomes_list_20genomes.csv
+assets/test_data/genomes_list_long_genomes.csv
+assets/test_data/katia_12genomes_list.csv
