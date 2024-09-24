@@ -29,12 +29,11 @@ def query_ENA(tax_ranks, baseDir):
     g_name = tax_ranks[current_name]
     genome_name = mp.process_string(g_name)
     genome_tax = tax_ranks[current_tax]
-    genome_accession = tax_ranks["genome_accession"]
-    
+    genome_accession = tax_ranks["genome_accession"].strip()
     gzip_path = os.path.join(genome_name + "_original_genome.gz")
     unzipped_fasta_file = genome_name + "_original_genome.fa"
     reheaded_fasta_file = genome_name + "_reheaded_assembly.fa"
-    
+
     url = "https://www.ebi.ac.uk/ena/browser/api/fasta/" + genome_accession + "?download=true&gzip=true"
     with open(log_dir, 'a') as logger:
         logger.write("url: " + url + "\n")
@@ -44,17 +43,12 @@ def query_ENA(tax_ranks, baseDir):
                 with open(gzip_path, 'wb') as f:
                     for chunk in response.iter_content(chunk_size=8192):
                         f.write(chunk)
-    
-            #if response.status_code == 200:
-            #    with open(gzip_path,"w") as gf:
-            #        gf.write(response.text)
+
             try:
                 gz_string = gunzip_file(gzip_path, unzipped_fasta_file)
-                now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 logger.write(gz_string)
                 mp.rehead_fasta(unzipped_fasta_file, reheaded_fasta_file)
                 print("SUCCESS querying ENA.Fasta file downloaded and reheaded to " + reheaded_fasta_file)
-                now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 logger.write("SUCCESS querying ENA.Fasta file downloaded and reheaded to " + reheaded_fasta_file + "\n")
             except Exception as e:
                 print(e)
@@ -66,7 +60,7 @@ def query_ENA(tax_ranks, baseDir):
             logger.write("Error querying ENA: " + str(err) + " : " + genome_name + " " + str(genome_tax) + " dir: " + reheaded_fasta_file + "\n")
 
 if __name__ == "__main__":
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')    
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     if len(sys.argv) < 1:
         print("The path to the genome is missing as an argument.")
     else:

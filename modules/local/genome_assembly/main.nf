@@ -15,6 +15,7 @@ process GENOME_ASSEMBLY {
 
     script:
     """
+    mkdir -p ${params.assemblies_dir}/${genome}
     python3 ${baseDir}/templates/genome_assembly.py ${genome} ${baseDir} "${tax_ranks}"
     """
 }
