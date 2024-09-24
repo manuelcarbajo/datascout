@@ -31,6 +31,7 @@ def generate_ena_csv(tax_ranks,genome ,baseDir):
                         str(genome_tax),
                         output_rna_csv_path
                     ]
+                    log_file.write(str(command))
                     # Execute the command
                     result = subprocess.run(
                         command,
@@ -39,8 +40,14 @@ def generate_ena_csv(tax_ranks,genome ,baseDir):
                         text=True
                     )
                     if os.path.isfile(output_rna_csv_path):
-                        data_found = True
-                    log_file.write(result.stdout)
+                        with open(output_rna_csv_path, 'r') as f:
+                            line_count = sum(1 for line in f)
+                            if line_count > 1:
+                                data_found = True
+                            else:
+                                os.remove(output_rna_csv_path)
+                    log_file.write(str(result.stdout))
+                    log_file.write(str(result.stderr))
                 except Exception as e:
                     print("generate_ena_csv error for level " + str(l) + " executing command "+ str(e) +" ")
         elif data_found:
