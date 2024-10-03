@@ -21,8 +21,12 @@ def read_csv_file(csv_file, ncbi_config, baseDir):
     IND_ORG_NAME = 0
     IND_TAX = 1
     IND_GCA = 2
-    #IND_GENOM_NAME = 10
     IND_ORTHODB_ACC = 3
+    IND_UNIPROT_ACC = 4
+    IND_RFAM_GROUP = 5
+    IND_RNA_ACC = 6
+    IND_UNIPROT_EVIDENCE_LEVEL = 7
+
 
     genome_paths = []
 
@@ -31,13 +35,13 @@ def read_csv_file(csv_file, ncbi_config, baseDir):
     current_row = "starting row"
     try:
         with open(csv_file, newline='') as csvfile:
-            reader = csv.reader(csvfile, delimiter='\t')
+            reader = csv.reader(csvfile, delimiter=',')
             species_dict = {}
             for row in reader:
                 #checks that the mandatory rows are there
                 for field in range(3):
                     if not row[field].strip():
-                        raise ValueError (f"Corrupted/bad formatteds line in input CSV file with row: " + str(row))
+                        raise ValueError (f"Corrupted/bad formatted line in input CSV file with row: " + str(row))
                 if (row) and (not row[0].startswith('#')):
                     current_row = str(row)
                     level_0_tax = row[IND_TAX]
@@ -62,19 +66,54 @@ def read_csv_file(csv_file, ncbi_config, baseDir):
                             "genome_name": genome_name,
                             "genome_accession": gca,
                             "log_dir": log_dir,
+                            "uniprot_evidence" : 2,
                             }
-
                     try:
                         orthoDB_acc = row[IND_ORTHODB_ACC].strip()
                         if orthoDB_acc:
-                           species_dict[gca]["orthoDB_acc"] = orthoDB_acc
+                            species_dict[gca]["orthoDB_acc"] = orthoDB_acc
+                            print("Overriding default OrthoDB search with user defined taxa choice: " + orthoDB_acc)
                     except Exception as e:
-                        print("NO row[IND_ORTHODB_ACC] or empty field" + str(e))
+                        print("NO prefered OrthoDB accession found (or empty field). Scouting for orthologues through the taxonomic tree.")
+
+                    try:
+                        uniprot_acc = row[IND_UNIPROT_ACC].strip()
+                        if uniprot_acc:
+                            species_dict[gca]["uniprot_acc"] = uniprot_acc
+                            print("Overriding default UniProt search with user defined taxa choice: " + uniprot_acc)
+                    except Exception as e:
+                        print("NO prefered UniProt accession found (or empty field). Scouting for UniProt proteins following the taxonomic tree.")
+
+                    try:
+                        uniprot_evidence = row[IND_UNIPROT_EVIDENCE_LEVEL].strip()
+                        if uniprot_evidence:
+                            species_dict[gca]["uniprot_evidence"] = uniprot_evidence
+                            print("Overriding default UniProt evidence level with user defined choice: " + uniprot_evidence)
+                    except Exception as e:
+                        print("NO prefered UniProt evidence level found (or empty field). Using default UniProt evidence level of 2")
+
+                    try:
+                        rfam_prefered_tax_group = row[IND_RFAM_GROUP].strip()
+                        if rfam_prefered_tax_group:
+                            species_dict[gca]["rfam_prefered_tax_group"] = rfam_prefered_tax_group
+                            print("Overriding default Rfam search strategy with user defined choice: " + rfam_prefered_tax_group)
+                        else:
+                            species_dict[gca]["rfam_prefered_tax_group"] = ''
+                            print("NO prefered Rfam taxonomic group found (or empty field). Scouting for Rfam protein families following the taxonomic tree.")
+                    except Exception as e:
+                        species_dict[gca]["rfam_prefered_tax_group"] = ''
+                        print("NO prefered Rfam taxonomic group found (or empty field). Scouting for Rfam protein families following the taxonomic tree.")
+
+                    try:
+                        rna_acc = row[IND_RNA_ACC].strip()
+                        if rna_acc:
+                            species_dict[gca]["rna_acc"] = rna_acc
+                            print("Overriding default transcriptomic search strategy with user defined taxa choice: " + rna_acc)
+                    except Exception as e:
+                        print("NO prefered RNA accession found (or empty field). Scouting for Rna data for strain or species level only.")
 
             species_dict = execute_mysql_query(ncbi_config, species_dict,baseDir)
-            print("ncbi query executed")
             get_orthoDB_data(species_dict,baseDir)
-            print("getorthodb executed")
             if not os.path.exists(folderName):
                 os.makedirs(folderName, exist_ok=True)
 
@@ -83,7 +122,7 @@ def read_csv_file(csv_file, ncbi_config, baseDir):
         print(str(fnf))
         sys.exit()
     except Exception as e:
-        print(f"An error occurred when trying to connect to ncbi: {e}\nTROUBLESHOOTING row: {current_row}\nMake sure the columns in the .csv file are tab separated\nAlso might be worth checking if the NCBI configuration file is correctly defined at {ncbi_config}")
+        print(f"An error occurred when trying to connect to ncbi: {e}\nTROUBLESHOOTING row: {current_row}\nMake sure the columns in the .csv file are comma separated\nAlso might be worth checking if the NCBI configuration file is correctly defined at {ncbi_config}")
         print(str(e))
         sys.exit()
 
