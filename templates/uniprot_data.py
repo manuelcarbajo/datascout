@@ -10,6 +10,7 @@ import my_process as mp
 def query_UniProt(tax_ranks, baseDir, genome_root_folder):
     log_file = tax_ranks['log_dir'] + "/uniprot.log"
     data_found = False
+
     with open(log_file,'a') as logger:
         for l in range(4):
             current_rank = "level_" + str(l) + "_rank"
@@ -19,6 +20,7 @@ def query_UniProt(tax_ranks, baseDir, genome_root_folder):
                 g_name = tax_ranks[current_name]
                 genome_name = mp.process_string(g_name)
                 genome_tax = tax_ranks[current_tax]
+                evidence_level_3 = int(tax_ranks["uniprot_evidence"]) == 3
 
                 if not os.path.exists(genome_root_folder):
                     os.makedirs(genome_root_folder)
@@ -26,9 +28,12 @@ def query_UniProt(tax_ranks, baseDir, genome_root_folder):
                 root_path_prefix =  genome_root_folder + "/" + genome_name
                 uniprot_fasta_file = root_path_prefix + "_uniprot_raw.fa"
                 uniprot_fasta_fai_file = root_path_prefix + "_uniprot_raw.fa.fai"
-
+                
                 url = "https://rest.uniprot.org/uniprotkb/stream?compressed=false&format=fasta&query=%28%28taxonomy_id%3A" + str(genome_tax) + "%29+AND+%28%28existence%3A1%29+OR+%28existence%3A2%29%29%29"
-                logger.write("url =" + url + "\n")
+                if evidence_level_3:
+                    url = "https://rest.uniprot.org/uniprotkb/stream?compressed=false&format=fasta&query=%28%28taxonomy_id%3A" + str(genome_tax) + "%29+AND+%28%28existence%3A1%29+OR+%28existence%3A2%29+OR+%28existence%3A3%29%29%29"
+                
+                logger.write("url (evidence_level_3-"+ str(evidence_level_3)+ "-)=" + url + "\n")
                 try:
                     response = requests.get(url)
                     
