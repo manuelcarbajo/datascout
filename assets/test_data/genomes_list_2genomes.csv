@@ -1,2 +1,4 @@
-#species_name	tax_id	ena_accession	prefered_orthodb_tax
-blastocystis_sp._subtype_4	944170	GCA_937862745.1 
+#species_name,tax_id,ena_accession,prefered_orthodb_tax,prefered_uniprot_acc,prefered_rfam_group,prefered_rna_tax,uniprot_evidence_level
+#trypanosoma_cruzi,5693,GCA_003719455.1
+#blastocystis_sp._subtype_4,944170,GCA_937862745.1,,,,,2
+malassezia_globosa,76773,GCA_937879915.1,451864,,Malassezia globosa,,3
