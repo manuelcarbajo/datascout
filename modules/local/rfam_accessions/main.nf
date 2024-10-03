@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process RFAM_ACCESSIONS {
     debug true
-    publishDir "${params.outdir}/genome_anno/${genome}", mode: params.publish_dir_mode
+    publishDir "${params.outdir}/genome_anno/${genome}", mode: 'copy'
 
     input:
     tuple val(genome), path(tax_ranks)
