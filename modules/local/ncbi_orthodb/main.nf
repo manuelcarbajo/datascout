@@ -2,7 +2,7 @@
 process NCBI_ORTHODB {
 
     debug true
-    publishDir "${params.outdir}/", mode: params.publish_dir_mode
+    publishDir "${params.outdir}/", mode: "copy"
 
     input:
     path csv_file
