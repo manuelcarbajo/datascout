@@ -27,6 +27,9 @@ def query_Rfam(tax_ranks, config_file_path, genome_dir):
         cursor = connection.cursor()
         max_nb_families = 0
         rfam_result = set()
+        rfam_prefered_tax_group = ''
+        if tax_ranks["rfam_prefered_tax_group"] :
+            rfam_prefered_tax_group = tax_ranks["rfam_prefered_tax_group"]
         with open(log_dir,'a') as logger:
             for l in range(4):
                 name_tag = "level_" + str(l) + "_name"
@@ -37,34 +40,47 @@ def query_Rfam(tax_ranks, config_file_path, genome_dir):
                         genome_name = tax_ranks[name_tag]
                         rank = tax_ranks[rank_tag] 
                         rank_hierarchy = mp.ranks_dict[rank]
+                        
                         if rank_hierarchy >= mp.ranks_dict['family']:
-    
+                            # Check if default behaviour needs to be overrun
+                            if rfam_prefered_tax_group:
+                                genome_name = rfam_prefered_tax_group
+                                rank_hierarchy = 'predefined by user: --> '
+                                rank = rfam_prefered_tax_group
+
                             # Define your SQL query
                             count_sql_query = f"""
-                                SELECT count(family_ncbi.rfam_acc) 
+                                SELECT count(distinct family_ncbi.rfam_acc) 
                                 FROM family_ncbi, taxonomy 
                                 WHERE family_ncbi.ncbi_id = taxonomy.ncbi_id 
                                 AND species LIKE '%{genome_name}%'
                             """
+                            logger.write(" * genome_name: " + genome_name + " rank_hierarchy: " + str(rank_hierarchy) + " rank: " + rank + " \n")
                             # Execute the query
                             cursor.execute(count_sql_query)
                             # Fetch all the rows returned by the query
                             rows = cursor.fetchall()
                             families_count = rows[0][0]
+                            logger.write("families_count: " + str(families_count))
+
                             print( " genome_name: " + genome_name + " rank_hierarchy: " + str(rank_hierarchy) + " " + rank )
                             print("  families_count: " + str(families_count) )
-                            logger.write(" - rank_hierarchy: " + str(rank_hierarchy) + " " + rank + "\n")
+                            logger.write(" - rank_hierarchy: " + str(rank_hierarchy) + " " + rank + " " + " genome_name: " + genome_name + "\n")
                             if families_count > max_nb_families:
                                 max_nb_families = families_count
                                 families_sql_query = f"""
-                                SELECT family_ncbi.rfam_acc 
+                                SELECT distinct family_ncbi.rfam_acc 
                                 FROM family_ncbi, taxonomy 
                                 WHERE family_ncbi.ncbi_id = taxonomy.ncbi_id 
                                 AND species LIKE '%{genome_name}%'
                                 """
                                 cursor.execute(families_sql_query)
                                 rfam_results = set(row[0] for row in cursor)
-                                logger.write(" ++ NEW MAX families_count: " + str(families_count) + " families_count: " + str(families_count) +  " hierarchy: " + str(rank_hierarchy) + " " + rank + "\n")
+                                logger.write(" ++ NEW MAX families_count: " + str(families_count) + " families_count: " + str(families_count) +  " hierarchy: " + str(rank_hierarchy) + " " + rank  + "\n")
+
+                                # if there is a user predefined value, end here
+                                if rfam_prefered_tax_group:
+                                    break
                 except Exception as e:
                     print("Error connecting to Rfam : " + str(e))
     
@@ -75,6 +91,7 @@ def query_Rfam(tax_ranks, config_file_path, genome_dir):
             # Close the cursor and connection
             cursor.close()
             connection.close()
+            logger.write("\nrfam ids path: " + rfam_ids_path)
             print("rfam ids path: " + rfam_ids_path)
     except mysql.connector.Error as err:
         print("Error connecting to MySQL RFam server: ", err)
