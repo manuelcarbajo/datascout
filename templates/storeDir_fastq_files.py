@@ -1,9 +1,7 @@
 import sys
-import requests
 import os
 import subprocess
 from datetime import datetime
-import my_process as mp
 import random
 import time
 import hashlib
@@ -21,16 +19,16 @@ def calculate_checksum(file_path):
     return hash_func.hexdigest()
 
 def download_fastq(fastq_file, baseDir, expected_chsum):
-    succes = False
+    success = False
     attempts = 0
     base_file_name = os.path.splitext(os.path.splitext(fastq_file)[0])[0]
-    while not succes and attempts < 3:
+    while not success and attempts < 3:
         try:
             download_script_path = os.path.join(baseDir, 'bin', 'download_RNAseq_fastqs.py')
             download_fastq_command = [
                 'python',
                 download_script_path,
-                '-ftp_base_url', "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/",
+                '-ftp_base_url', "ftp://ftp.sra.ebi.ac.uk/vol1/fastq",
                 '-input_dir', ".",
                 '-iid', fastq_file,
             ]
@@ -39,16 +37,16 @@ def download_fastq(fastq_file, baseDir, expected_chsum):
             try:
                 result = subprocess.run(download_fastq_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 if result.returncode != 0:
-                    print(f"Error: {result.stderr}")
+                    print(f"Subprocess Error: {result.stderr}\n" + str(download_fastq_command))
                 else:
-                    print(f"Output: {result.stdout}")
+                    print(f"Subprocess Output: {result.stdout}")
             except Exception as e:
                 print(f"Subprocess failed: {str(e)}")
 
             check_sum = calculate_checksum(fastq_file)
             if (check_sum.lower() == expected_chsum.lower()):
-                succes = True
-                print("File download succesful and integrity verified")
+                success = True
+                print("File download successful and integrity verified")
             else:
                 os.remove(fastq_file)
                 attempts += 1
@@ -60,7 +58,7 @@ def download_fastq(fastq_file, baseDir, expected_chsum):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 1:
+    if len(sys.argv) < 4:
         print("The genome, its tax_ranks path and/or the name of the fastq file is/are missing as an argument.")
     else:
         # Generate a random wait time between 0 and 10 seconds to avoid spaming ENA
