@@ -23,11 +23,11 @@ This project uses nextflow-23.04.1
 
 After downloading the datascout repo define your WORK_DIR (path to datascout git repo), ENSEMBL_ROOT_DIR (path to your other ensembl git repositories) and diamond_path (path to a copy of uniprot_euk.fa.dmnd database)
 
-Place a tab separated list of genomes to annotate in "$WORK_DIR/data/genomes_list.csv"  
+Place a comma separated list of genomes to annotate in "$WORK_DIR/data/genomes_list.csv"  
 (following the template in "$WORK_DIR/data/genomes_list_template.csv")  
 
   GENOME_NAME	TAX_ID	ENA_ACCESSION  
-  Place here a tab separated list of genomes to process.  
+  Place here a comma separated list of genomes to process.  
   Example:  
-  toxoplasma_gondii_ME49	508771	GCA_000006565.2  
-  tripanosoma_cruzi	5693	GCA_003719455.1  
+  toxoplasma_gondii_ME49,508771,GCA_000006565.2  
+  tripanosoma_cruzi,5693,GCA_003719455.1  
