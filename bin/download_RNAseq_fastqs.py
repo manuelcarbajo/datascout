@@ -1,5 +1,4 @@
 # downloadRNASeqFastqs.py
-
 import os
 import subprocess
 import argparse
@@ -41,9 +40,9 @@ class DownloadRNASeqFastqs:
 
         exit_code = 0
         wget_cmd_list = [
-            ['wget', '-c', '-qq', f"{ftp_base_url}/{first}/{second_a}/{srr}/{fastq}", '-P', path],
-            ['wget', '-c', '-qq', f"{ftp_base_url}/{first}/{second_b}/{srr}/{fastq}", '-P', path],
-            ['wget', '-c', '-qq', f"{ftp_base_url}/{first}/{srr}/{fastq}", '-P', path]
+            ['wget', '-c', '-v', '--timeout=120', f"{ftp_base_url}/{first}/{second_a}/{srr}/{fastq}", '-P', path],
+            ['wget', '-c', '-v', '--timeout=120', f"{ftp_base_url}/{first}/{second_b}/{srr}/{fastq}", '-P', path],
+            ['wget', '-c', '-v', '--timeout=120', f"{ftp_base_url}/{first}/{srr}/{fastq}", '-P', path]
         ]
         for wget_cmd in wget_cmd_list:
             exit_code = self.exit_code_test(wget_cmd)
@@ -96,15 +95,19 @@ class DownloadRNASeqFastqs:
     def exit_code_test(self, wget_cmd):
         res = self.run_system_command(wget_cmd)
         if res != 0:
-            res >>= 8  # Bit-shift right by 8 bits, similar to Perl's behavior
             self.warning(f"wget died with error code {res}")
             return 0
         else:
             return 1
 
+
     def run_system_command(self, cmd):
         try:
-            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if result.returncode != 0:
+                print(f"Command failed with exit code {result.returncode}")
+                print(f"Standard Output:\n{result.stdout}")
+                print(f"Standard Error:\n{result.stderr}")
             return result.returncode
         except Exception as e:
             self.throw(f"Error running command {' '.join(cmd)}: {str(e)}")
