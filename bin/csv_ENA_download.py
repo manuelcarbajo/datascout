@@ -18,10 +18,11 @@ class DownloadCsvENA:
         self.sample_domain = "domain=sample&result=sample"
         self.sample_fields = "accession,secondary_sample_accession,bio_material,cell_line,cell_type,collected_by,collection_date," \
                               "country,cultivar,culture_collection,description,dev_stage,ecotype,environmental_sample,first_public," \
-                              "germline,identified_by,isolate,isolation_source,location,mating_type,serotype,serovar,sex,submitted_sex," \
+                              "germline,identified_by,isolate,isolation_source,location,mating_type,serotype,serovar,sex," \
                               "specimen_voucher,strain,sub_species,sub_strain,tissue_lib,tissue_type,variety,tax_id,scientific_name,sample_alias," \
                               "center_name,protocol_label,project_name,investigation_type,experimental_factor,sample_collection,sequencing_method"
         self.disease_keyword_for_removal = ['immunization', 'disease']
+        self.bad_text_sex_field = ['not determined', 'not collected', 'missing']
 
     def query_ena(self):
         csv_data = {}
@@ -31,7 +32,7 @@ class DownloadCsvENA:
 
         for query in self.queries:
             url = f"{self.ena_base_url}&query={query}&domain=read&result=read_run&fields={self.files_fields}"
-            #print(url)
+            print(url)
             ua = requests.Session()
             response = requests.get(url)
 
@@ -73,12 +74,13 @@ class DownloadCsvENA:
 
                     sample_name = row[fields_index['sample_accession']]
 
-                    # Initialize a dictionary entry for the sample_name in samples
-                    samples[sample_name] = {}
+                    # Initialize a list for the sample_name in samples
+                    if sample_name not in samples:
+                        samples[sample_name] = []
+
                     study_accession = row[fields_index['study_accession']]
 
-
-                    # Push data (line, which can be a dictionary or processed row) into csv_data
+                    # Push data into csv_data
                     if study_accession not in csv_data:
                         csv_data[study_accession] = {}
 
@@ -97,16 +99,49 @@ class DownloadCsvENA:
                         print("+++ unsuccessful sample -1: " + sample + "\nRemoved {} from the set as it is from a non-healthy animal".format(sample))
                         continue
                     elif success == 0:
-                        self.ua.headers.update({'User-Agent': 'Python requests'})  # Reset to default headers
-                        url = f"{self.ena_base_url}?query=\"accession={sample}\"&{self.sample_domain}&fields={self.sample_fields}"
-                        print("+++ unsuccessful sample 0: " + sample + "\n  sample url:" + url)
+                        ua.headers.update({'User-Agent': 'Python requests'})  # Reset to default headers
+                        try:
+                            url = f"{self.ena_base_url}?query=\"accession={sample}\"&{self.sample_domain}&fields={self.sample_fields}&limit=10000"
 
-                        response = self.ua.get(url)
-                        if response.ok:
-                            content = response.text
-                            if content:
-                                updated_data = self.process_biosample_content(content, data)
-                                data = updated_data
+                            response = ua.get(url, timeout=120, stream=True)
+                            if response.ok:
+                                header_processed = False
+                                fields_index = {}
+                                data_list = []
+
+                                for line in response.iter_lines(decode_unicode=True):
+                                    if line:
+                                        line = line.strip()
+                                        # Process the header line to get field indices
+                                        if not header_processed:
+                                            if line.startswith("accession"):
+                                                fields = line.split('\t')
+                                                fields_index = {field: index for index, field in enumerate(fields)}
+                                                header_processed = True
+                                            else:
+                                                print(f"No valid data returned for sample {sample}")
+                                                break  # Exit if the header is not as expected
+                                        else:
+                                            # Process each data line
+                                            row = line.split('\t')
+                                            data_row = {}
+                                            for field, index in fields_index.items():
+                                                data_row[field] = row[index] if index < len(row) else ''
+                                            # Process the data_row as needed
+                                            updated_data = self.process_biosample_data_row(data_row)
+                                            data_list.append(updated_data)
+                                # After processing all lines, update 'data' with the collected data
+                                data = data_list
+                            else:
+                                print(f"Failed to retrieve data for sample {sample}, status code {response.status_code}")
+                        except Exception as e:
+                            print(f"+++ Something went wrong while displaying this webpage: {str(e)}\n  Sample URL: {url}")
+                            continue
+
+                    # Ensure data is always a list
+                    if not isinstance(data, list):
+                        data = [data]
+
                     samples[sample] = data
 
         if csv_data:
@@ -118,72 +153,94 @@ class DownloadCsvENA:
                     if sample not in samples:
                         continue  # Skip to next sample if sample data is not available
 
-                    sample_data = samples[sample]
+                    sample_data_list = samples[sample]  # May be a list of dictionaries
 
-                    # Process development stages
-                    if 'dev_stage' in sample_data and sample_data['dev_stage']:
-                        if sample_data['dev_stage'] == 'sexually immature stage':
-                            continue  # Skip if dev_stage is 'sexually immature stage
-                        dev_stages[sample_data['dev_stage']] = 1  # Add dev_stage to dev_stages dictionary
+                    # Process each sample_data in the list
+                    for sample_data in sample_data_list:
+                        # Process development stages
+                        if 'dev_stage' in sample_data and sample_data['dev_stage']:
+                            if sample_data['dev_stage'] == 'sexually immature stage':
+                                continue  # Skip if dev_stage is 'sexually immature stage'
+                            dev_stages[sample_data['dev_stage']] = 1  # Add dev_stage to dev_stages dictionary
 
-                    # Determine the sample name
-                    sample_name = sample_data.get('cellType') or sample_data.get('organismPart')
-
-                    if not sample_name:
+                        # Determine the sample name
+                        sample_name = ''
                         try:
-                            sample_alias = sample_data.get('sample_alias')
-                            description = sample_data.get('description', '')
-                            if sample_alias == sample and len(description) > 2:
-                                sample_name = description
-                            elif description and sample in description:
-                                sample_name = sample
-                            else:
-                                sample_name = sample_alias
+                            sample_name = sample_data.get('cellType') or sample_data.get('organismPart')
                         except Exception as e:
-                            print ("Sample_name Error for sample "+ sample + str(e) + "\n will use sample alias instead :" + sample_data.get('sample_alias'))
-                            sample_name = sample_data.get('sample_alias')
+                            print("*/*/* Unable to extract sample_name from sample_data (" + str(type(sample_data)) + ") cellType or organismPart " + str(sample_data))
+                            pass
 
-                    sample_names[sample] = sample_name
+                        if not sample_name:
+                            try:
+                                sample_alias = sample_data.get('sample_alias')
+                                description = sample_data.get('description', '')
+                                if sample_alias == sample and len(description) > 2:
+                                    sample_name = description
+                                elif description and sample in description:
+                                    sample_name = sample
+                                else:
+                                    sample_name = sample_alias
+                            except Exception as e:
+                                print("Sample_name Error for sample " + sample + str(e) + "\n will use sample alias instead: " + str(sample_data))
+                                sample_name = sample_data.get('sample_alias')
+
+                        # Assign the sample_name if not already assigned
+                        if sample not in sample_names or not sample_names[sample]:
+                            sample_names[sample] = sample_name
 
                 for sample in csv_data[project].keys():
                     if sample not in samples:
                         continue  # Skip if sample data is not available
 
-                    sample_data = samples[sample]
-                    name_parts = []
+                    sample_data_list = samples[sample]  # May be a list of dictionaries
 
-                    # Add 'sex' to name parts if it exists and is not empty
-                    if sample_data.get('sex'):
-                        name_parts.append(sample_data['sex'])
+                    # Process each sample_data in the list
+                    for sample_data in sample_data_list:
+                        name_parts = []
 
-                    # Add sample_names[sample] to name parts
-                    name_parts.append(sample_names[sample])
+                        # Add 'sex' to name parts if it exists and is not empty
+                        if sample_data.get('sex'):
+                            name_parts.append(sample_data['sex'])
 
-                    # Check if there are multiple dev_stages and if dev_stage exists
-                    if len(dev_stages) > 1 and sample_data.get('dev_stage'):
-                        # Remove ' stage' from dev_stage
-                        sample_data['dev_stage'] = sample_data['dev_stage'].replace(' stage', '')
+                        # Add sample_names[sample] to name parts
+                        name_parts.append(sample_names.get(sample, 'unknown'))
 
-                        if sample_data.get('age'):
-                            # Remove '.0' from age
-                            sample_data['age'] = sample_data['age'].replace('.0', '')
+                        # Check if there are multiple dev_stages and if dev_stage exists
+                        if len(dev_stages) > 1 and sample_data.get('dev_stage'):
+                            # Remove ' stage' from dev_stage
+                            sample_data['dev_stage'] = sample_data['dev_stage'].replace(' stage', '')
 
-                            if sample_data['dev_stage'] == 'embryo':
-                                # Replace ' (\w)\w+' with '\1pf' in age
-                                sample_data['age'] = re.sub(r' (\w)\w+', r'\1pf', sample_data['age'])
-                                name_parts.append(sample_data['age'])
-                            elif sample_data['dev_stage'] == 'neonate':
-                                name_parts.append(sample_data['dev_stage'])
+                            if sample_data.get('age'):
+                                # Remove '.0' from age
+                                sample_data['age'] = sample_data['age'].replace('.0', '')
+
+                                if sample_data['dev_stage'] == 'embryo':
+                                    # Replace ' (\w)\w+' with '\1pf' in age
+                                    sample_data['age'] = re.sub(r' (\w)\w+', r'\1pf', sample_data['age'])
+                                    name_parts.append(sample_data['age'])
+                                elif sample_data['dev_stage'] == 'neonate':
+                                    name_parts.append(sample_data['dev_stage'])
+                                else:
+                                    name_parts.extend([sample_data['age'], sample_data['dev_stage']])
                             else:
-                                name_parts.extend([sample_data['age'], sample_data['dev_stage']])
-                        else:
-                            name_parts.append(sample_data['dev_stage'])
+                                name_parts.append(sample_data['dev_stage'])
 
-                    # Set samples[sample]['sample_name'] to '_'-joined name parts
-                    sample_data['sample_name'] = '_'.join(name_parts)
+                        # Remove any None or empty string values from name_parts
+                        name_parts = [part for part in name_parts if part]
+                        # Set sample_data['sample_name'] to '_'-joined name parts
+                        if name_parts:
+                            sample_name_combined = '_'.join(name_parts)
+                            print(sample + " renamed to " + sample_name_combined)
+                            sample_data['sample_name'] = sample_name_combined
+                        else:
+                            print(f"No valid name parts for sample '{sample}'. Renaming to default name *unknown*")
+                            sample_data['sample_name'] = 'unknown'
+
         return csv_data, samples
 
-    def write_inputfile(self,csv_data, samples, outfile, _centre_name=''):
+
+    def write_inputfile(self, csv_data, samples, outfile, _centre_name=''):
         output_ids = []
         output_lines_dict = {}  # Key: description, Value: list of output_line dictionaries. To order output by description/base_count
 
@@ -194,102 +251,110 @@ class DownloadCsvENA:
                 if sample not in samples:
                     continue  # Skip if sample data is not available
 
-                for experiment in study[sample]:
-                    files = experiment['fastq_file'].split(';')
-                    checksums = experiment['fastq_md5'].split(';')
-                    index = 0
+                # Retrieve the list of sample data entries for the sample
+                sample_data_list = samples[sample]
 
-                    for file in files:
-                        filename = os.path.basename(file)
-                        sample_name = samples[sample]['sample_name']
+                # Process each sample_data in the list
+                for sample_data in sample_data_list:
+                    # Process experiments for each sample_data
+                    for experiment in study[sample]:
+                        files = experiment['fastq_file'].split(';')
+                        checksums = experiment['fastq_md5'].split(';')
+                        index = 0
 
-                        # Clean up sample_name
-                        sample_name = re.sub(r'\s+-\s+\w+:\w+$', '', sample_name)
-                        sample_name = re.sub(r'[\s\W]+', '_', sample_name)
-                        sample_name = re.sub(r'_{2,}', '_', sample_name)
-                        sample_name = sample_name.strip('_')
+                        for file in files:
+                            filename = os.path.basename(file)
+                            sample_name = sample_data['sample_name']
 
-                        # Build description
-                        cell_type_str = ''
-                        if samples[sample].get('cell_type'):
-                            cell_type_str = ', ' + samples[sample]['cell_type']
+                            # Clean up sample_name
+                            sample_name = re.sub(r'\s+-\s+\w+:\w+$', '', sample_name)
+                            sample_name = re.sub(r'[\s\W]+', '_', sample_name)
+                            sample_name = re.sub(r'_{2,}', '_', sample_name)
+                            sample_name = sample_name.strip('_')
 
-                        description = "{}, {}{}".format(
-                            experiment['study_title'],
-                            experiment['experiment_title'],
-                            cell_type_str
-                        )
+                            # Build description
+                            cell_type_str = ''
+                            if sample_data.get('cell_type'):
+                                cell_type_str = ', ' + sample_data['cell_type']
 
-                        for field in samples[sample].values():
-                            if field:
-                                description += ';' + str(field)
+                            description = "{}, {}{}".format(
+                                experiment['study_title'],
+                                experiment['experiment_title'],
+                                cell_type_str
+                            )
 
-                        # Replace ':' and tab characters with space in description
-                        description = description.replace(':', ' ').replace('\t', ' ')
+                            for field in sample_data.values():
+                                if field:
+                                    description += ';' + str(field)
 
-                        line = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}, {}, {}\t{}\t{}\t{}\n".format(
-                            sample_name.lower(),
-                            experiment['run_accession'],
-                            1 if experiment['library_layout'] == 'PAIRED' else 0,
-                            filename,
-                            -1,
-                            experiment['read_length'],
-                            0,
-                            experiment.get('center_name') or _centre_name,
-                            experiment['instrument_platform'],
-                            study_accession,
-                            sample,
-                            description,
-                            file,
-                            checksums[index],
-                            experiment.get('base_count',0)
-                        )
+                            # Replace ':' and tab characters with space in description
+                            description = description.replace(':', ' ').replace('\t', ' ')
 
-                        # Collect the output line and associated data
-                        base_count = int(experiment.get('base_count', 0))
-                        output_line = {
-                            'line': line,
-                            'description': description,
-                            'base_count': base_count,
-                        }
+                            line = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}, {}, {}\t{}\t{}\t{}\n".format(
+                                sample_name.lower(),
+                                experiment['run_accession'],
+                                1 if experiment['library_layout'] == 'PAIRED' else 0,
+                                filename,
+                                -1,
+                                experiment['read_length'],
+                                0,
+                                experiment.get('center_name') or _centre_name,
+                                experiment['instrument_platform'],
+                                study_accession,
+                                sample,
+                                description,
+                                file,
+                                checksums[index],
+                                experiment.get('base_count', 0)
+                            )
 
-                        # Organize lines by description and calculate max_base_count
-                        if description not in output_lines_dict:
-                            output_lines_dict[description] = {
-                                'lines': [],
-                                'max_base_count': base_count
+                            # Collect the output line and associated data
+                            base_count = int(experiment.get('base_count', 0))
+                            output_line = {
+                                'line': line,
+                                'description': description,
+                                'base_count': base_count,
                             }
-                        else:
-                            # Update max_base_count if current base_count is higher
-                            if base_count > output_lines_dict[description]['max_base_count']:
-                                output_lines_dict[description]['max_base_count'] = base_count
 
-                        output_lines_dict[description]['lines'].append(output_line)
+                            # Use a unique key for each combination of description and sample_name
+                            output_key = (description, sample_name)
 
-                        # Collect output IDs
-                        output_ids.append({
-                            'url': file,
-                            'download_method': 'https',
-                            'checksum': checksums[index]
-                        })
-                        index += 1
+                            # Organize lines by (description, sample_name) and calculate max_base_count
+                            if output_key not in output_lines_dict:
+                                output_lines_dict[output_key] = {
+                                    'lines': [],
+                                    'max_base_count': base_count
+                                }
+                            else:
+                                # Update max_base_count if current base_count is higher
+                                if base_count > output_lines_dict[output_key]['max_base_count']:
+                                    output_lines_dict[output_key]['max_base_count'] = base_count
 
-        # Sort descriptions by their maximum base_count in descending order
-        sorted_descriptions = sorted(
+                            output_lines_dict[output_key]['lines'].append(output_line)
+
+                            # Collect output IDs
+                            output_ids.append({
+                                'url': file,
+                                'download_method': 'https',
+                                'checksum': checksums[index]
+                            })
+                            index += 1
+
+        # Sort output_keys by their maximum base_count in descending order
+        sorted_output_keys = sorted(
             output_lines_dict.items(),
             key=lambda item: -item[1]['max_base_count']
         )
 
-
         # Write the sorted lines to the output file
         with open(outfile, 'w') as fh:
-            for description, data in sorted_descriptions:
-                # Sort lines within each description by descending base_count
+            for (description, sample_name), data in sorted_output_keys:
+                # Sort lines within each (description, sample_name) by descending base_count
                 lines = data['lines']
                 lines.sort(key=lambda x: -x['base_count'])
 
-                # For debugging: print description and base_counts
-                print(f"description: {description}")
+                # For debugging: print description, sample_name, and base_counts
+                print(f"description: {description}, sample_name: {sample_name}")
                 for line_data in lines:
                     print(f"base_count: {line_data['base_count']}")
 
@@ -298,6 +363,7 @@ class DownloadCsvENA:
                     fh.write(output_line['line'])
 
         return output_ids
+
 
     def parse_header(self, content):
         header = content.split('\n')[0]
@@ -391,9 +457,9 @@ class DownloadCsvENA:
                 # Check for disease-related keywords for removal
                 for disease in self.disease_keyword_for_removal:
                     if disease in json_data.get('characteristics', {}) and \
-                       json_data['characteristics'][disease][0]['text'] not in ['control', 'normal']:
+                       json_data['characteristics'][disease][0]['text'] not in ['control', 'normal','NA']:
                         print(f"Removed {current_sample} from the set as it has {disease} value: "
-                                     f"{json_data['characteristics'][disease][0]['text']}")
+                                     f"{json_data['characteristics'][disease]}")
                         return -1
 
                 # Check health status at collection
@@ -421,19 +487,32 @@ class DownloadCsvENA:
                 # Process sex
                 for sex in ['sex', 'ArrayExpress-Sex']:
                     if sex in json_data.get('characteristics', {}) and \
-                       json_data['characteristics'][sex][0]['text'] not in self.param('bad_text_sex_field', {}):
+                       json_data['characteristics'][sex][0]['text'] not in self.bad_text_sex_field:
                         if sex in data and data[sex] != json_data['characteristics'][sex][0]['text']:
                             print(f"Replacing {data[sex]} with {json_data['characteristics'][sex][0]['text']}")
                         data['sex'] = json_data['characteristics'][sex][0]['text']
 
                 # Process age
                 for age_string in ['gestational age at sample collection', 'animal age at collection', 'age']:
-                    if age_string in json_data.get('characteristics', {}):
-                        age_value = f"{json_data['characteristics'][age_string][0]['text']} {json_data['characteristics'][age_string][0]['unit']}"
-                        if 'age' in data and data['age'] != age_value:
-                            print(f"Replacing {data['age']} with {age_value}")
-                        data['age'] = age_value
-                        break
+                    characteristics = json_data.get('characteristics', {})
+                    age_entries = characteristics.get(age_string)
+                    if age_entries and isinstance(age_entries, list) and len(age_entries) > 0:
+                        first_entry = age_entries[0]
+                        if isinstance(first_entry, dict):
+                            text = first_entry.get('text')
+                            unit = first_entry.get('unit')
+                            if text and unit:
+                                age_value = f"{text} {unit}"
+                                if 'age' in data and data['age'] != age_value:
+                                    print(f"Replacing {data['age']} with {age_value}")
+                                    data['age'] = age_value
+                                    break
+                            else:
+                                print(f"Missing 'text' or 'unit' in the first entry of '{age_string}'.")
+                        else:
+                            print(f"The first entry for '{age_string}' is not a dictionary.")
+                    else:
+                        pass  # No valid entries found for this age_string
 
                 # Process sample alias
                 for sample_string in ['sample_name', 'sample description', 'alias', 'synonym', 'title']:
@@ -508,7 +587,16 @@ class DownloadCsvENA:
                 invalid_sex_types = ['not determined', 'not collected', 'missing']
                 if data['sex'] in invalid_sex_types:
                     data['sex'] = None
-        return  data
+        return data
+
+    def process_biosample_data_row(self, data_row):
+        # Extract and process fields as needed
+        invalid_sex_types = ['not determined', 'not collected', 'missing']
+        if data_row.get('sex') in invalid_sex_types:
+            data_row['sex'] = None
+        # Add additional processing as required
+        return data_row
+
 
 def main( tax_id, outdir):
     # Example usage
