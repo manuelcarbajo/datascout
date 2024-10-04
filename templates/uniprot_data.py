@@ -19,7 +19,12 @@ def query_UniProt(tax_ranks, baseDir, genome_root_folder):
             if tax_ranks[current_name] and not data_found:
                 g_name = tax_ranks[current_name]
                 genome_name = mp.process_string(g_name)
-                genome_tax = tax_ranks[current_tax]
+                try:
+                    genome_tax = tax_ranks ["uniprot_acc"]
+                    current_rank = "user defined " + str(genome_tax)
+                except Exception:
+                    genome_tax = tax_ranks [current_tax]
+
                 evidence_level_3 = int(tax_ranks["uniprot_evidence"]) == 3
 
                 if not os.path.exists(genome_root_folder):
@@ -38,7 +43,10 @@ def query_UniProt(tax_ranks, baseDir, genome_root_folder):
                     response = requests.get(url)
                     
                     if response.status_code == 200 and response.text:
-                        successful_rank = tax_ranks[current_rank]
+                        try:
+                            successful_rank = tax_ranks[current_rank]
+                        except:
+                            successful_rank = current_rank
                         print("SUCCESS at level " + str(l) + ": " + uniprot_fasta_file)
                         logger.write("SUCCESS with rank " + successful_rank +  " (level " + str(l) + "): " + uniprot_fasta_file + "\nwith url: " + url + "\n\n")             
                         if os.path.exists(uniprot_fasta_file):
