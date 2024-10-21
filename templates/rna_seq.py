@@ -13,11 +13,17 @@ def generate_ena_csv(tax_ranks,genome ,baseDir):
         current_name = "level_" + str(l) + "_name"
         current_tax = "level_" + str(l) + "_tax"
         current_hierarchy = "level_" + str(l) + "_hierarchy"
+        user_prefered_tax = False
         #TO DO - review filtering conditions, otherwise ranks_dict["species"] is just enough.
         if tax_ranks[current_hierarchy] <= mp.ranks_dict["species"] and not data_found:
             g_name = tax_ranks[current_name]
 
-            genome_tax = tax_ranks[current_tax]
+            try:
+                genome_tax = tax_ranks["rna_acc"]
+                user_prefered_tax = True
+            except:
+                genome_tax = tax_ranks[current_tax]
+
             output_rna_csv_path = genome + "_" + str(genome_tax) + "_ENA_rna.csv"
             log_dir = os.path.join(baseDir, 'logs', genome)
             log_file_path = log_dir + '/rna_script.log'
@@ -51,6 +57,8 @@ def generate_ena_csv(tax_ranks,genome ,baseDir):
                 except Exception as e:
                     print("generate_ena_csv error for level " + str(l) + " executing command "+ str(e) +" ")
         elif data_found:
+            break
+        if user_prefered_tax:
             break
 
 if __name__ == "__main__":

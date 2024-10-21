@@ -33,8 +33,8 @@ def sourmash_filter(tax_rank, genome_name,fastq_files,rna_fastq_folder):
 
 if __name__ == "__main__":
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    if len(sys.argv) < 2:
-        print("The genome, the fastq_files list, or the tax_ranks path is/are missing as an argument.")
+    if len(sys.argv) < 5:
+        print("The genome, the fastq_files list, the tax_ranks path or the fastq_folder is/are missing as an argument.")
     else:
         genome_name = sys.argv[1]
         fastq_files = sys.argv[2]
