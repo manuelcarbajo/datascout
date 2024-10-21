@@ -1,10 +1,10 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/Ensembl/datascout/master/nextflow_schema.json",
     "title": "Ensembl/datascout pipeline parameters",
     "description": "This repo queries and gather data from different resources which can then be used to run bulk automatised annotation of microbial genomes.The different types of data are: OrthoDB and UniProt orthology data; Rfam (non coding Rna data); Transcriptomic data from ENA",
     "type": "object",
-    "definitions": {
+    "defs": {
         "input_output_options": {
             "title": "Input/output options",
             "type": "object",
@@ -65,11 +65,6 @@
                     "format": "directory-path",
                     "description": "The output directory where the csv filewith all transcriptomic runs available for different genomes will be persistently saved.",
                     "fa_icon": "fa-solid fa-folder-open"
-                },
-                "min_transcriptomic_reads": {
-                    "type": "integer",
-                    "description": "Minimum threshold of number of transcriptomic reads to use with ensembl_anno.",
-                    "fa_icon": "fa-regular chart-bar"
                 }
             }
         },
@@ -203,16 +198,16 @@
     },
     "allOf": [
         {
-            "$ref": "#/definitions/input_output_options"
+            "$ref": "#/defs/input_output_options"
         },
         {
-            "$ref": "#/definitions/institutional_config_options"
+            "$ref": "#/defs/institutional_config_options"
         },
         {
-            "$ref": "#/definitions/max_job_request_options"
+            "$ref": "#/defs/max_job_request_options"
         },
         {
-            "$ref": "#/definitions/generic_options"
+            "$ref": "#/defs/generic_options"
         }
     ]
 }
