@@ -1,16 +1,16 @@
 //
-// Subworkflow that uses the nf-validation plugin to render help text and parameter summary
+// Subworkflow that uses the nf-schema plugin to render help text and parameter summary
 //
 
 /*
 ========================================================================================
-    IMPORT NF-VALIDATION PLUGIN
+    IMPORT NF-add PLUGIN
 ========================================================================================
 */
 
-include { paramsHelp         } from 'plugin/nf-validation'
-include { paramsSummaryLog   } from 'plugin/nf-validation'
-include { validateParameters } from 'plugin/nf-validation'
+include { paramsHelp         } from 'plugin/nf-schema'
+include { paramsSummaryLog   } from 'plugin/nf-schema'
+include { validateParameters } from 'plugin/nf-schema'
 
 /*
 ========================================================================================

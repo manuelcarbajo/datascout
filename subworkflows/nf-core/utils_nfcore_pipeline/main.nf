@@ -118,20 +118,6 @@ def workflowVersionToYAML() {
     """.stripIndent().trim()
 }
 
-//
-// Get channel of software versions used in pipeline in YAML format
-//
-def softwareVersionsToYAML(ch_versions) {
-    return ch_versions
-                .unique()
-                .map { processVersionsFromYAML(it) }
-                .unique()
-                .mix(Channel.of(workflowVersionToYAML()))
-}
-
-//
-// Get workflow summary for MultiQC
-//
 def paramsSummaryMultiqc(summary_params) {
     def summary_section = ''
     for (group in summary_params.keySet()) {

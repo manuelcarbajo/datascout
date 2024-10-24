@@ -27,16 +27,13 @@ if (params.validate_params) {
 }
 
 /*
-
-/*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT FUNCTIONS / MODULES / SUBWORKFLOWS / WORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { DATASCOUT  } from './workflows/datascout'
+include { DATASCOUT               } from './workflows/datascout'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_datascout_pipeline'
-include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_datascout_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,9 +62,6 @@ workflow ENSEMBL_DATASCOUT {
         orthodb_dir
     )
 
-    //emit:
-    //datascout_report = DATASCOUT.out.datascout_report
-
 }
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -82,6 +76,7 @@ workflow {
     //
     // SUBWORKFLOW: Run initialisation tasks
     //
+    
     PIPELINE_INITIALISATION (
         params.version,
         params.help,
@@ -91,7 +86,7 @@ workflow {
         params.outdir,
         params.csv_file
     )
-
+    
     //
     // WORKFLOW: Run main workflow
     //
@@ -101,14 +96,6 @@ workflow {
         PIPELINE_INITIALISATION.out.orthodb_dir
     )
 
-    //
-    // SUBWORKFLOW: Run completion tasks
-    //
-    //PIPELINE_COMPLETION (
-    //    params.outdir,
-    //    params.monochrome_logs,
-    //    ENSEMBL_DATASCOUT.out.datascout_report
-    //)
 }
 
 /*
