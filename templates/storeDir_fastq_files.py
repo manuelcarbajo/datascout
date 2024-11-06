@@ -38,23 +38,37 @@ def download_fastq(fastq_file, baseDir, expected_chsum):
                 result = subprocess.run(download_fastq_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 if result.returncode != 0:
                     print(f"Subprocess Error: {result.stderr}\n" + str(download_fastq_command))
+                    attempts += 1
+                    print(f"Download failed. Attempts so far: {attempts}")
+                    time.sleep(1)
+                    continue  # Skip to the next attempt
                 else:
                     print(f"Subprocess Output: {result.stdout}")
             except Exception as e:
                 print(f"Subprocess failed: {str(e)}")
-
-            check_sum = calculate_checksum(fastq_file)
-            if (check_sum.lower() == expected_chsum.lower()):
-                success = True
-                print("File download successful and integrity verified")
-            else:
-                os.remove(fastq_file)
                 attempts += 1
-                print("File download fail. Corrupted file deleted. Will attempt another download. Nb of attempts so far: " + str(attempts))
-
+                time.sleep(1)
+                continue  # Skip to the next attempt
+            if os.path.exists(fastq_file):
+                check_sum = calculate_checksum(fastq_file)
+                if (check_sum.lower() == expected_chsum.lower()):
+                    success = True
+                    print("File download successful and integrity verified")
+                else:
+                    os.remove(fastq_file)
+                    attempts += 1
+                    time.sleep(1)
+                    print("File download fail. Corrupted file deleted. Will attempt another download. Nb of attempts so far: " + str(attempts))
+            else:
+                print(f"File {fastq_file} does not exist after download attempt.")
+                attempts += 1
+                time.sleep(1)
         except subprocess.CalledProcessError as e:
             print("Download fastq error. Command :"+ str(download_fastq_command) +": " + str(e) +" ")
             attempts += 1
+            time.sleep(1)
+    if not success:
+        print("Failed to download the file after multiple attempts.")
 
 
 if __name__ == "__main__":
