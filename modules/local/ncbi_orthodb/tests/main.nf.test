@@ -1,1 +1,56 @@
-#https://github.com/nf-core/modules/blob/master/modules/nf-core/goat/taxonsearch/tests/main.nf.test
+nextflow_process {
+
+    name "Test Process NCBI_ORTHODB"
+    script "../main.nf"
+    process "PROOVFRAME_FIX"
+
+    tag "modules"
+    tag "modules_datascout"
+    tag "datascout"
+
+    test("test - ncbi_orthodb") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    file("${projectDir}/assets/test_data/genomes_test_list.csv", checkIfExists: true)
+                ]
+                input[1] = file("${projectDir}/assets/test_data/out_test_dir")
+                input[2] = file("${projectDir}/assets/test_data/out_test_dir/ncbi_orthodb")
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert path(process.out.genomes).text.contains(" 'level_1_tax': 5782") }
+            )
+        }
+    }
+
+    test("test - ncbi_orthodb - stub") {
+        options '-stub'
+
+        when {
+            process {
+                """
+                input[0] = [
+                    file("${projectDir}/assets/test_data/genomes_test_list.csv", checkIfExists: true)
+                ]
+                input[1] = file("${projectDir}/assets/test_data/out_test_dir")
+                input[2] = file("${projectDir}/assets/test_data/out_test_dir/ncbi_orthodb")
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+
+}
