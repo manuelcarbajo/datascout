@@ -22,10 +22,6 @@ include { ENA_RNA_CSV            } from "${projectDir}/modules/local/ena_rna_csv
 include { FILTER_RNA_CSV         } from "${projectDir}/modules/local/filter_rna_csv/main.nf"
 include { DOWNLOAD_FASTQ_FILES   } from "${projectDir}/modules/local/download_fastq_files/main.nf"
 include { SOURMASH_RNA_CSV       } from "${projectDir}/modules/local/sourmash_rna_csv/main.nf"
-//include { paramsSummaryMap       } from 'plugin/nf-schema'
-//include { paramsSummaryMultiqc   } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
-//include { softwareVersionsToYAML } from "${projectDir}/subworkflows/nf-core/utils_nfcore_pipeline"
-//include { methodsDescriptionText } from "${projectDir}/subworkflows/local/utils_nfcore_datascout_pipeline"
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -59,7 +55,7 @@ workflow DATASCOUT {
     ENA_RNA_CSV(ch_genomes)
 
     FILTER_RNA_CSV(ENA_RNA_CSV.out.rna_csv)
-
+ 
     ch_rna_filtered_to_storeDir = FILTER_RNA_CSV.out.filtered_rna_csv
                                 .splitCsv(elem: 1, header: false, sep: '\t' )
                                 .map{row -> tuple(row[1][3], row[1][11])}
