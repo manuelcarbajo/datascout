@@ -1,13 +1,13 @@
 import csv
 import sys
 import os
-import mysql.connector
-from urllib.parse import urlparse, parse_qs
-from pathlib import Path
+import pymysql
+#from urllib.parse import urlparse, parse_qs
+#from pathlib import Path
 from datetime import datetime
 import my_process as mp
 import shutil
-import re
+#import re
 import requests
 import multiprocessing
 from functools import partial
@@ -154,14 +154,14 @@ def execute_mysql_query(config_file_path, species_dict,baseDir):
 
     # Establish MySQL connection
     try:
-        connection = mysql.connector.connect(
+        connection = pymysql.connect(
             host=host,
             user=user,
             password=password,
             database=database,
             port=port
         )
-    except mysql.connector.Error as err:
+    except pymysql.mysqlError as err:
         print(f"Error connecting to MySQL: {err}")
         return
 
@@ -198,7 +198,7 @@ def execute_mysql_query(config_file_path, species_dict,baseDir):
                             species_dict[gca][current_hierarchy] = species_dict[gca][previous_hierarchy]
                     except Exception as e:
                         print("Error trying to query level_" + str(ql))
-            except mysql.connector.Error as err:
+            except pymysql.mysqlError as err:
                 print(f"connector error executing query: {err}")
             except Exception as err:
                 print(f"Generic error executing query : {query}\nError message: {err}")
@@ -206,7 +206,7 @@ def execute_mysql_query(config_file_path, species_dict,baseDir):
     # Close the cursor and connection
     if 'cursor' in locals() and cursor is not None:
         cursor.close()
-    if 'connection' in locals() and connection.is_connected():
+    if 'connection' in locals() and connection.open:
         connection.close()
     return species_dict
 

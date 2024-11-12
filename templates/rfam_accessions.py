@@ -1,7 +1,7 @@
 import sys
 import os
 from datetime import datetime
-import mysql.connector
+import pymysql
 import my_process as mp
 
 
@@ -15,7 +15,7 @@ def query_Rfam(tax_ranks, config_file_path, genome_dir):
     rfam_results = []
     # Establish a connection to the MySQL database
     try:
-        connection = mysql.connector.connect(
+        connection = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -93,7 +93,7 @@ def query_Rfam(tax_ranks, config_file_path, genome_dir):
             connection.close()
             logger.write("\nrfam ids path: " + rfam_ids_path)
             print("rfam ids path: " + rfam_ids_path)
-    except mysql.connector.Error as err:
+    except pymysql.mysqlError as err:
         print("Error connecting to MySQL RFam server: ", err)
 
     return rfam_ids_path
