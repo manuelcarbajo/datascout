@@ -1,2 +1,2 @@
-#species_name,tax_id,ena_accession,prefered_orthodb_tax,prefered_uniprot_acc,prefered_rfam_group,prefered_rna_tax,uniprot_evidence_level
-blastocystis_sp._subtype_4,944170,GCA_937862745.1
+#species_name,tax_id,ena_accession
+dictyostelium_purpureum,5787,GCA_000190715.1
