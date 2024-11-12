@@ -21,13 +21,19 @@ This project uses nextflow-23.04.1
 
 ### Initialising and running the environment
 
-After downloading the datascout repo define your WORK_DIR (path to datascout git repo), ENSEMBL_ROOT_DIR (path to your other ensembl git repositories) and diamond_path (path to a copy of uniprot_euk.fa.dmnd database)
+After downloading the datascout repo define your PROJECT_DIR (path to datascout git repo),
 
-Place a comma separated list of genomes to annotate in "$WORK_DIR/data/genomes_list.csv"  
-(following the template in "$WORK_DIR/data/genomes_list_template.csv")  
+Use a comma separated list of genomes to annotate as input  
+(following the template in ""${PROJECT_DIR}/assets/test_data/genomes_test_list.csv"")  
 
-  GENOME_NAME	TAX_ID	ENA_ACCESSION  
-  Place here a comma separated list of genomes to process.  
-  Example:  
+  GENOME_NAME	TAX_ID	ENA_ACCESSION    
+  #Example:  
   toxoplasma_gondii_ME49,508771,GCA_000006565.2  
-  tripanosoma_cruzi,5693,GCA_003719455.1  
+  tripanosoma_cruzi,5693,GCA_003719455.1
+
+Define the configuration of USER/PWD/SERVER/PORT of your mysql ncbi_tax and rfam DBs in ""${PROJECT_DIR}/conf/ncbi_db.conf""
+and ""${PROJECT_DIR}/conf/rfam_db.conf"" following the structure in the template in that same folder:
+mysql://USER:PWD@mysql-ncbi-SERVER:PORT/ncbi_taxonomy_db
+
+Make sure you have conda installed
+Define the right paths in env_setup.sh and run it
