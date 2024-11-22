@@ -47,19 +47,20 @@ include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_data
 workflow ENSEMBL_DATASCOUT {
 
     take:
-    csv_file // channel: samplesheet read in from --csv-file
+    csv_file 
     outdir
     orthodb_dir
+    ncbi_conf
 
     main:
-
     //
     // WORKFLOW: Run pipeline
     //
     DATASCOUT (
         csv_file,
         outdir,
-        orthodb_dir
+        orthodb_dir,
+        ncbi_conf,
     )
 
 }
@@ -76,7 +77,8 @@ workflow {
     //
     // SUBWORKFLOW: Run initialisation tasks
     //
-    
+
+
     PIPELINE_INITIALISATION (
         params.version,
         params.help,
@@ -93,7 +95,8 @@ workflow {
     ENSEMBL_DATASCOUT (
         PIPELINE_INITIALISATION.out.csv_file,
         PIPELINE_INITIALISATION.out.outdir,
-        PIPELINE_INITIALISATION.out.orthodb_dir
+        PIPELINE_INITIALISATION.out.orthodb_dir,
+        PIPELINE_INITIALISATION.out.ncbi_conf,
     )
 
 }

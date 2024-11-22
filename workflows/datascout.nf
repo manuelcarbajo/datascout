@@ -35,6 +35,8 @@ workflow DATASCOUT {
     ch_csv_file// channel: csv_file read in from input param --csv_file
     ch_outdir
     ch_orthodb_dir
+    ch_ncbi_conf
+
     main:
 
     ch_versions = Channel.empty()
@@ -42,7 +44,8 @@ workflow DATASCOUT {
     NCBI_ORTHODB (
         ch_csv_file,
         ch_outdir,
-        ch_orthodb_dir
+        ch_orthodb_dir,
+        ch_ncbi_conf,
     )
 
     def ch_genomes = NCBI_ORTHODB.out.genomes

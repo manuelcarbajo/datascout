@@ -55,6 +55,8 @@ class DownloadCsvENA:
                         continue
 
                     run_accession = self.determine_run_accession(row, fields_index)
+                    if run_accession == "SRR2072153":
+                        print("---- accession SRR2072153 : " + str(row))
                     if run_accession not in run_accessions:
                         run_accessions[run_accession] = {}
 
@@ -119,7 +121,7 @@ class DownloadCsvENA:
                                                 fields_index = {field: index for index, field in enumerate(fields)}
                                                 header_processed = True
                                             else:
-                                                print(f"No valid data returned for sample {sample}")
+                                                print(f"**No valid data returned for sample {sample}")
                                                 break  # Exit if the header is not as expected
                                         else:
                                             # Process each data line
@@ -374,7 +376,8 @@ class DownloadCsvENA:
     def should_skip_line(self, line):
         if line == '':
             return True
-
+        """
+        Removing this pattern since it is mostly relevant for vertebrates
         # Check for words related to infection or immune challenges, including variations of 'immunize', 'challenge', 'tomize'
         infection_patterns = [
             r'\binfected\b',
@@ -384,7 +387,7 @@ class DownloadCsvENA:
         ]
         if any(re.search(pattern, line, re.IGNORECASE) for pattern in infection_patterns):
             return True
-
+        """
         # Check for RNA types including variations
         rna_patterns = [
             r'mi\w{0,3}RNA',  # \w{0,3} allows for up to three letters between 'mi' and 'RNA'
@@ -393,6 +396,7 @@ class DownloadCsvENA:
             r'small RNA',
         ]
         if any(re.search(pattern, line, re.IGNORECASE) for pattern in rna_patterns):
+            print("removing line " + line + " because of wrong rna pattern: " + str(pattern))
             return True
 
         # If none of the patterns match, the line should not be skipped

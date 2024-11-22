@@ -14,8 +14,11 @@ export PERL5LIB=${PROJECTDIR}/bin:$BIOPERL_LIB
 export PYTHONPATH=${PROJECTDIR}/bin:$PYTHONPATH:${PROJECTDIR}/templates
 export PATH="${PROJECTDIR}:${PROJECTDIR}/bin:$PATH" 
 
+
+conda config --add channels conda-forge
 conda env create -n datascout -f env_datascout.yml
 conda activate datascout
+
 OUTPUT_STATIC_DIR="/<path/to/output/static/dir>"
 export ORTHODB_FOLDER="${OUTPUT_STATIC_DIR}/orthodb_dir"
 export OUTPUT_PATH="${OUTPUT_STATIC_DIR}/genome_annotations"

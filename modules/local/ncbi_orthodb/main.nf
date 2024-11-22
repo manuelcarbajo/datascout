@@ -1,6 +1,7 @@
-#!/usr/bin/env nextflow
+
 process NCBI_ORTHODB {
 
+    container 'oras://community.wave.seqera.io/library/pymysql_requests:1c5d37c9f8f0203c'
     debug true
     publishDir "${params.outdir}/", mode: "copy"
 
@@ -8,13 +9,13 @@ process NCBI_ORTHODB {
     path csv_file
     path output_path
     path orthodb_folder
+    path ncbi_db_conf
 
     output:
     path("genome_anno/*/*_tax_ranks.txt"), emit: genomes
 
     script:
     """
-    mkdir -p ${params.orthodb_dir}
-    python ${baseDir}/templates/ncbi_ortho_DBdata.py  ${csv_file} "${baseDir}/conf/ncbi_db.conf" ${baseDir} ${orthodb_folder}
+    ncbi_ortho_DBdata.py ${csv_file} ${ncbi_db_conf} ${baseDir} ${orthodb_folder}
     """
 }
