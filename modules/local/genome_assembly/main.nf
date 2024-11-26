@@ -1,11 +1,11 @@
 #!/usr/bin/env nextflow
 process GENOME_ASSEMBLY {
 
+    container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
     debug true
     publishDir "${params.outdir}/genome_anno/${genome}", mode: params.publish_dir_mode
     maxForks ("${params.max_cpus}" - 5)
     storeDir "${params.assemblies_dir}/${genome}"
-    //queue 'datamover'
 
     input:
     tuple val(genome), path(tax_ranks)
@@ -16,6 +16,6 @@ process GENOME_ASSEMBLY {
     script:
     """
     mkdir -p ${params.assemblies_dir}/${genome}
-    python3 ${baseDir}/templates/genome_assembly.py ${genome} ${baseDir} "${tax_ranks}"
+    genome_assembly.py ${genome} ${projectDir} "${tax_ranks}"
     """
 }

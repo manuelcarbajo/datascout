@@ -13,6 +13,6 @@ process UNIPROT_DATA {
 
     script:
     """
-    uniprot_data.py ${genome} ${tax_ranks} ${baseDir}
+    uniprot_data.py ${genome} ${tax_ranks} ${projectDir}
     """
 }

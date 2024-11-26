@@ -16,10 +16,8 @@ process NCBI_ORTHODB {
 
     script:
     """
-    echo begining of script block
     target_dir=\$(readlink orthodb_test_dir)
     mkdir -p "\$target_dir"
-    echo about to execute ncbi script
-    ncbi_ortho_DBdata.py ${csv_file} ${ncbi_db_conf} ${baseDir} ${orthodb_folder}
+    ncbi_ortho_DBdata.py ${csv_file} ${ncbi_db_conf} ${projectDir} ${orthodb_folder}
     """
 }
