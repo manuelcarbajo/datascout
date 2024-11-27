@@ -34,7 +34,7 @@ def generate_ena_csv(tax_ranks,genome ,baseDir):
             with open(log_file_path, 'w') as log_file:
                 try:
                     log_file.write(" ** Querying ENA for RNA data for " + g_name + " taxonomy " + str(genome_tax) + "\n" )
-                    csv_ENA_download.main(genome_tax, output_rna_csv_path)
+                    result_str = csv_ENA_download.main(genome_tax, output_rna_csv_path)
                     if os.path.isfile(output_rna_csv_path):
                         with open(output_rna_csv_path, 'r') as f:
                             line_count = sum(1 for line in f)
@@ -42,8 +42,8 @@ def generate_ena_csv(tax_ranks,genome ,baseDir):
                                 data_found = True
                             else:
                                 os.remove(output_rna_csv_path)
-                    log_file.write(str(result.stdout))
-                    log_file.write(str(result.stderr))
+                    log_file.write(str(result_str))
+                    log_file.write(str(result_str))
                 except Exception as e:
                     print("generate_ena_csv error for level " + str(l) + " executing command "+ str(e) +" ")
         elif data_found:
