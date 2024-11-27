@@ -57,8 +57,6 @@ class DownloadCsvENA:
                         continue
 
                     run_accession = self.determine_run_accession(row, fields_index)
-                    if run_accession == "SRR2072153":
-                        print("---- accession SRR2072153 : " + str(row))
                     if run_accession not in run_accessions:
                         run_accessions[run_accession] = {}
 
@@ -100,7 +98,6 @@ class DownloadCsvENA:
 
                     if success == -1:
                         del samples[sample]
-                        print("+++ unsuccessful sample -1: " + sample + "\nRemoved {} from the set as it is from a non-healthy animal".format(sample))
                         continue
                     elif success == 0:
                         ua.headers.update({'User-Agent': 'Python requests'})  # Reset to default headers
@@ -358,9 +355,9 @@ class DownloadCsvENA:
                 lines.sort(key=lambda x: -x['base_count'])
 
                 # For debugging: print description, sample_name, and base_counts
-                print(f"description: {description}, sample_name: {sample_name}")
-                for line_data in lines:
-                    print(f"base_count: {line_data['base_count']}")
+                #print(f"description: {description}, sample_name: {sample_name}")
+                #for line_data in lines:
+                    #print(f"base_count: {line_data['base_count']}")
 
                 # Write each line to the file
                 for output_line in lines:
@@ -372,7 +369,6 @@ class DownloadCsvENA:
     def parse_header(self, content):
         header = content.split('\n')[0]
         result = {field: idx for idx, field in enumerate(header.split('\t'))}
-        #print("header dict: " + str(result))
         return result
 
     def should_skip_line(self, line):
@@ -398,7 +394,7 @@ class DownloadCsvENA:
             r'small RNA',
         ]
         if any(re.search(pattern, line, re.IGNORECASE) for pattern in rna_patterns):
-            print("removing line " + line + " because of wrong rna pattern: " + str(pattern))
+            #print("removing line " + line + " because of wrong rna pattern: " + str(pattern))
             return True
 
         # If none of the patterns match, the line should not be skipped
@@ -460,6 +456,8 @@ class DownloadCsvENA:
             if content:
                 json_data = json_decoder.decode(content)
 
+                # Removing this pattern since it is mostly relevant for vertebrates
+                """
                 # Check for disease-related keywords for removal
                 for disease in self.disease_keyword_for_removal:
                     if disease in json_data.get('characteristics', {}) and \
@@ -467,7 +465,7 @@ class DownloadCsvENA:
                         print(f"Removed {current_sample} from the set as it has {disease} value: "
                                      f"{json_data['characteristics'][disease]}")
                         return -1
-
+                """
                 # Check health status at collection
                 if 'health status at collection' in json_data.get('characteristics', {}) and \
                    json_data['characteristics']['health status at collection'][0]['text'] != 'normal':
@@ -487,7 +485,7 @@ class DownloadCsvENA:
                     if dev_stage in json_data.get('characteristics', {}):
                         if 'dev_stage' in data and data['dev_stage'] != json_data['characteristics'][dev_stage][0]['text']:
                             print(f"Replacing {data['dev_stage']} with {json_data['characteristics'][dev_stage][0]['text']}")
-                        data['dev_stage'] = json_data['characteristics'][dev_stage][0]['text']
+                            data['dev_stage'] = json_data['characteristics'][dev_stage][0]['text']
                         break
 
                 # Process sex
@@ -496,7 +494,7 @@ class DownloadCsvENA:
                        json_data['characteristics'][sex][0]['text'] not in self.bad_text_sex_field:
                         if sex in data and data[sex] != json_data['characteristics'][sex][0]['text']:
                             print(f"Replacing {data[sex]} with {json_data['characteristics'][sex][0]['text']}")
-                        data['sex'] = json_data['characteristics'][sex][0]['text']
+                            data['sex'] = json_data['characteristics'][sex][0]['text']
 
                 # Process age
                 for age_string in ['gestational age at sample collection', 'animal age at collection', 'age']:
