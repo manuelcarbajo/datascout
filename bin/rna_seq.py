@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import ast
 import requests
@@ -6,6 +8,7 @@ import os
 import subprocess
 from datetime import datetime
 import my_process as mp
+import csv_ENA_download
 
 def generate_ena_csv(tax_ranks,genome ,baseDir):
     data_found = False
@@ -31,9 +34,11 @@ def generate_ena_csv(tax_ranks,genome ,baseDir):
             with open(log_file_path, 'w') as log_file:
                 try:
                     log_file.write(" ** Querying ENA for RNA data for " + g_name + " taxonomy " + str(genome_tax) + "\n" )
+                    """
                     command = [
                         sys.executable,  # This ensures you use the same Python interpreter
-                        os.path.join(baseDir,'bin', 'csv_ENA_download.py'),
+                        #os.path.join(baseDir,'bin', 'csv_ENA_download.py'),
+                        'csv_ENA_download.py',
                         str(genome_tax),
                         output_rna_csv_path
                     ]
@@ -45,6 +50,8 @@ def generate_ena_csv(tax_ranks,genome ,baseDir):
                         stderr=subprocess.PIPE,
                         text=True
                     )
+                    """
+                    csv_ENA_download.main(genome_tax, output_rna_csv_path)
                     if os.path.isfile(output_rna_csv_path):
                         with open(output_rna_csv_path, 'r') as f:
                             line_count = sum(1 for line in f)

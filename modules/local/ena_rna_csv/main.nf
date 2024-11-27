@@ -1,5 +1,7 @@
 #!/usr/bin/env nextflow
 process ENA_RNA_CSV {
+
+    container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
     debug true
     storeDir "${params.ena_csv_dir}/${genome}"
 
@@ -11,6 +13,6 @@ process ENA_RNA_CSV {
 
     script:
     """
-    python ${baseDir}/templates/rna_seq.py ${genome} ${tax_ranks} ${baseDir}
+    rna_seq.py ${genome} ${tax_ranks} ${projectDir}
     """
 }
