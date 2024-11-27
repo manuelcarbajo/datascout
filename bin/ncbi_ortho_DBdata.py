@@ -5,7 +5,6 @@ import sys
 import os
 import pymysql
 from datetime import datetime
-print("all good")
 import my_process as mp
 import shutil
 import requests
