@@ -34,23 +34,6 @@ def generate_ena_csv(tax_ranks,genome ,baseDir):
             with open(log_file_path, 'w') as log_file:
                 try:
                     log_file.write(" ** Querying ENA for RNA data for " + g_name + " taxonomy " + str(genome_tax) + "\n" )
-                    """
-                    command = [
-                        sys.executable,  # This ensures you use the same Python interpreter
-                        #os.path.join(baseDir,'bin', 'csv_ENA_download.py'),
-                        'csv_ENA_download.py',
-                        str(genome_tax),
-                        output_rna_csv_path
-                    ]
-                    log_file.write(str(command))
-                    # Execute the command
-                    result = subprocess.run(
-                        command,
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        text=True
-                    )
-                    """
                     csv_ENA_download.main(genome_tax, output_rna_csv_path)
                     if os.path.isfile(output_rna_csv_path):
                         with open(output_rna_csv_path, 'r') as f:
