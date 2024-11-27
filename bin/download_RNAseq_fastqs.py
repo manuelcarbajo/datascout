@@ -3,6 +3,8 @@ import os
 import subprocess
 import argparse
 import sys
+import urllib.request
+import time
 
 class DownloadRNASeqFastqs:
     def __init__(self, params):
@@ -14,12 +16,16 @@ class DownloadRNASeqFastqs:
         # Update with provided parameters
         self.params.update(params)
 
+
     def write_output(self):
         ftp_base_url = self.param_required('ftp_base_url')
         fastq = self.param_required('iid')
         path = self.param_required('input_dir')
 
-        if os.path.exists(os.path.join(path, fastq)):
+        local_file_path = os.path.join(path, fastq)
+
+        # Check if the file already exists
+        if os.path.exists(local_file_path):
             if self.param('decompress'):
                 fastq = self.decompress(path, fastq)
 
@@ -29,6 +35,7 @@ class DownloadRNASeqFastqs:
             self.complete_early('Input file already exists, will not download')
             return
 
+        # Construct SRR and URL paths
         if '_' in fastq:
             srr = fastq.split('_')[0]
         else:
@@ -38,30 +45,53 @@ class DownloadRNASeqFastqs:
         second_a = '00' + srr[-1]
         second_b = '0' + srr[-2:]
 
-        exit_code = 0
-        wget_cmd_list = [
-            ['wget', '-c', '-v', '--timeout=120', f"{ftp_base_url}/{first}/{second_a}/{srr}/{fastq}", '-P', path],
-            ['wget', '-c', '-v', '--timeout=120', f"{ftp_base_url}/{first}/{second_b}/{srr}/{fastq}", '-P', path],
-            ['wget', '-c', '-v', '--timeout=120', f"{ftp_base_url}/{first}/{srr}/{fastq}", '-P', path]
+        url_list = [
+            f"{ftp_base_url}/{first}/{second_a}/{srr}/{fastq}",
+            f"{ftp_base_url}/{first}/{second_b}/{srr}/{fastq}",
+            f"{ftp_base_url}/{first}/{srr}/{fastq}"
         ]
-        for wget_cmd in wget_cmd_list:
-            exit_code = self.exit_code_test(wget_cmd)
-            if exit_code:
-                break
 
-        if not exit_code:
-            if os.path.exists(os.path.join(path, fastq)):
-                self.run_system_command(['rm', os.path.join(path, fastq)])
+        # Attempt to download the file from each URL
+        download_success = False
+        for url in url_list:
+            try:
+                self.download_file(url, local_file_path)
+                download_success = True
+                break
+            except Exception as e:
+                self.warning(f"Failed to download from {url}: {e}")
+                # Remove any partially downloaded file
+                if os.path.exists(local_file_path):
+                    os.remove(local_file_path)
+
+        if not download_success:
             self.throw(f"Failed to download {fastq}")
 
-        if not os.path.exists(os.path.join(path, fastq)):
-            self.throw(f"Did not find the fastq file on the expected path. Path:\n{os.path.join(path, fastq)}")
+        if not os.path.exists(local_file_path):
+            self.throw(f"Did not find the fastq file on the expected path. Path:\n{local_file_path}")
 
         if self.param('decompress'):
             fastq = self.decompress(path, fastq)
 
         if self.param('create_faidx'):
             self.create_faidx(path, fastq)
+
+    def download_file(self, url, local_file_path, timeout=120):
+            """
+            Downloads a file from the given URL to the specified local file path.
+            """
+            try:
+                self.warning(f"Attempting to download {url}")
+                # Ensure the directory exists
+                os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
+                # Download the file
+                urllib.request.urlretrieve(url, local_file_path)
+                self.warning(f"Successfully downloaded {url}")
+            except Exception as e:
+                # Remove any partially downloaded file
+                if os.path.exists(local_file_path):
+                    os.remove(local_file_path)
+                raise Exception(f"Failed to download {url}: {e}")
 
     def decompress(self, path, fastq):
         cmd = ['gunzip', os.path.join(path, fastq)]
