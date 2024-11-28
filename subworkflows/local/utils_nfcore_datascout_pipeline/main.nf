@@ -18,32 +18,40 @@ include { paramsSummaryMap          } from 'plugin/nf-schema'
 
 workflow PIPELINE_INITIALISATION {
 
+    // Assign workflow.projectDir to a variable
+    def projectDir = workflow.projectDir
+
+
     take:
-    version           // boolean: Display version and exit
-    help              // boolean: Display help text
-    validate_params   // boolean: Boolean whether to validate parameters against the schema at runtime
-    monochrome_logs   // boolean: Do not use coloured log outputs
-    nextflow_cli_args //   array: List of positional nextflow CLI args
-    outdir            //  string: The output directory where the results will be saved
-    csv_file          //  string: Path to input samplesheet
+        version
+        help
+        validate_params
+        monochrome_logs
+        nextflow_cli_args
+        outdir
+        csv_file
 
     main:
 
-    ch_versions = Channel.empty()
+        println "Inside main: projectDir is $projectDir"
 
-    //
-    // Create channel from input file provided through params.input
-    //
-    Channel.of(params.csv_file).set { ch_csv_file }
-    Channel.of(params.outdir).set { ch_outdir }
-    Channel.of(params.orthodb_dir).set { ch_orthodb_dir }
-    //Channel.of("$baseDir/conf/ncbi_db.conf").set { ch_ncbi_conf }
+        // Create channels from input parameters
+        ch_csv_file      = Channel.of(params.csv_file)
+        ch_outdir        = Channel.of(params.outdir)
+        ch_orthodb_dir   = Channel.of(params.orthodb_dir)
+
+
+        // Assign variables to workflow scope
+        csv_file          = ch_csv_file
+        outdir            = ch_outdir
+        orthodb_dir       = ch_orthodb_dir
+        ncbi_conf         = file("${projectDir}/conf/ncbi_db.conf")
+        versions          = Channel.empty()
 
     emit:
-    csv_file = ch_csv_file
-    outdir = ch_outdir
-    orthodb_dir = ch_orthodb_dir
-    versions    = ch_versions
+        csv_file      = ch_csv_file
+        outdir        = outdir
+        orthodb_dir   = orthodb_dir
+        ncbi_conf     = ncbi_conf
+        versions      = versions
 }
-
-

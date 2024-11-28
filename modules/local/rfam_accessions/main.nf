@@ -1,5 +1,7 @@
 #!/usr/bin/env nextflow
 process RFAM_ACCESSIONS {
+
+    container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
     debug true
     publishDir "${params.outdir}/genome_anno/${genome}", mode: 'copy'
 
@@ -11,6 +13,6 @@ process RFAM_ACCESSIONS {
 
     script:
     """
-    python ${baseDir}/templates/rfam_accessions.py ${genome} "${baseDir}/conf/rfam_db.conf" ${tax_ranks}
+    rfam_accessions.py ${genome} "${projectDir}/conf/rfam_db.conf" ${tax_ranks}
     """
 }

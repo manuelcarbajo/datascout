@@ -1,5 +1,7 @@
 #!/usr/bin/env nextflow
 process UNIPROT_DATA {
+
+    container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
     debug true
     storeDir "${params.uniprot_dir}"
 
@@ -11,6 +13,6 @@ process UNIPROT_DATA {
 
     script:
     """
-    python ${baseDir}/templates/uniprot_data.py ${genome} ${tax_ranks} ${baseDir}
+    uniprot_data.py ${genome} ${tax_ranks} ${projectDir}
     """
 }

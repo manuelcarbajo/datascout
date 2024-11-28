@@ -1,5 +1,6 @@
 #!/usr/bin/env nextflow
 process SOURMASH_RNA_CSV {
+    container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
     debug true
 
     input:
@@ -10,6 +11,6 @@ process SOURMASH_RNA_CSV {
 
     script:
     """
-    python3 ${baseDir}/templates/sourmash_rna.py ${genome} "${fastq_files}" ${tax_ranks} ${params.rna_fastq_dir}
+    sourmash_rna.py ${genome} "${fastq_files}" ${tax_ranks} ${params.rna_fastq_dir}
     """
 }

@@ -1,13 +1,12 @@
+#!/usr/bin/env python3
+
 import csv
 import sys
 import os
 import pymysql
-#from urllib.parse import urlparse, parse_qs
-#from pathlib import Path
 from datetime import datetime
 import my_process as mp
 import shutil
-#import re
 import requests
 import multiprocessing
 from functools import partial

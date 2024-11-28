@@ -1,6 +1,7 @@
-#GENOME_NAME	TAX_ID	ENA_ACCESSION
-# Place here a tab separated list of genomes to process. 
+#GENOME_NAME,TAX_ID,ENA_ACCESSION
+# Place here a comma separated list of genomes to process. 
 # Rename the file "genomes_list.csv"
 # Example:
-#toxoplasma_gondii_ME49	508771	GCA_000006565.2
-#tripanosoma_cruzi	5693	GCA_003719455.1
+#toxoplasma_gondii_ME49	508771,GCA_000006565.2
+#tripanosoma_cruzi,5693,GCA_003719455.1
+micromonas_commoda,296587,GCA_937858595.1

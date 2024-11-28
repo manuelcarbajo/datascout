@@ -1,5 +1,7 @@
 #!/usr/bin/env nextflow
 process FILTER_RNA_CSV {
+
+    container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
     debug true
     publishDir "${params.outdir}/genome_anno/${genome}", mode: params.publish_dir_mode
     storeDir "${params.ena_csv_dir}/${genome}"
@@ -12,7 +14,7 @@ process FILTER_RNA_CSV {
 
     script:
     """
-    python ${baseDir}/templates/filter_rna_csv.py ${genome} ${baseDir} ${tax_ranks} ${rna_csv}
+    filter_rna_csv.py ${genome} ${projectDir} ${tax_ranks} ${rna_csv}
     """
 
 }
