@@ -16,8 +16,9 @@ process NCBI_ORTHODB {
 
     script:
     """
-    target_dir=\$(readlink orthodb_test_dir)
+    target_dir=\$(readlink orthodb_dir)
     mkdir -p "\$target_dir"
     ncbi_ortho_DBdata.py ${csv_file} ${ncbi_db_conf} ${projectDir} ${orthodb_folder}
     """
+
 }
