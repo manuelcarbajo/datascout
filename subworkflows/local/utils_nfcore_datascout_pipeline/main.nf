@@ -33,8 +33,6 @@ workflow PIPELINE_INITIALISATION {
 
     main:
 
-        println "Inside main: projectDir is $projectDir"
-
         // Create channels from input parameters
         ch_csv_file      = Channel.of(params.csv_file)
         ch_outdir        = Channel.of(params.outdir)
