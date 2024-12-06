@@ -16,7 +16,7 @@ git clone git@github.com:manuelcarbajo/datascout
 
 #### Refresing environment
 
-This project uses nextflow-23.04.1 
+This project uses nextflow-24.04.3
 
 ### Initialising and running the environment
 
