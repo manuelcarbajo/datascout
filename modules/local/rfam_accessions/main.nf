@@ -3,7 +3,9 @@ process RFAM_ACCESSIONS {
 
     container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
     debug true
-    publishDir "${params.outdir}/genome_anno/${genome}", mode: 'copy'
+    publishDir "${params.outdir}/genome_anno/${genome}", mode: 'copy'\
+    errorStrategy  'retry'
+    maxRetries 2
 
     input:
     tuple val(genome), path(tax_ranks)
