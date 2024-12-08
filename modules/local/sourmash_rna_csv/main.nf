@@ -2,6 +2,8 @@
 process SOURMASH_RNA_CSV {
     container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
     debug true
+    errorStrategy  'retry'
+    maxRetries 2
 
     input:
     tuple val(genome), val(fastq_files), path(tax_ranks)

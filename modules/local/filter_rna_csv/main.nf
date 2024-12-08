@@ -5,6 +5,9 @@ process FILTER_RNA_CSV {
     debug true
     publishDir "${params.outdir}/genome_anno/${genome}", mode: params.publish_dir_mode
     storeDir "${params.ena_csv_dir}/${genome}"
+    errorStrategy 'retry'
+    maxRetries 2
+
 
     input:
     tuple val(genome), path(rna_csv), path(tax_ranks)

@@ -4,6 +4,8 @@ process UNIPROT_DATA {
     container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
     debug true
     storeDir "${params.uniprot_dir}"
+    errorStrategy  'retry'
+    maxRetries 2
 
     input:
     tuple val(genome), path(tax_ranks)

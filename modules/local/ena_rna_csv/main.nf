@@ -4,6 +4,10 @@ process ENA_RNA_CSV {
     container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
     debug true
     storeDir "${params.ena_csv_dir}/${genome}"
+    errorStrategy 'retry'
+    maxRetries 3
+    memory '30 GB'
+    
 
     input:
     tuple val(genome), path(tax_ranks)
