@@ -21,6 +21,10 @@ This project uses nextflow-24.04.3
 ### Initialising and running the environment
 
 After downloading the datascout repo define a PROJECT_DIR variable (path to datascout git repo).
+```
+export PROJECTDIR="/path/to/your/Ensembl-datascout"
+cd ${PROJECTDIR}
+```
 
 Define the configuration of USER/PWD/SERVER/PORT of your mysql ncbi_tax and rfam DBs in ""${PROJECT_DIR}/conf/ncbi_db.conf""
 and ""${PROJECT_DIR}/conf/rfam_db.conf"" following the structure in the template in that same folder:
@@ -28,7 +32,7 @@ mysql://USER:PWD@mysql-ncbi-SERVER:PORT/ncbi_taxonomy_db.
 
 Test the configuration with:
 ```
-nextflow run main.nf -profile test,singularity
+nextflow run main.nf -profile slurm,test,singularity
 ```
 Use a comma separated list of genomes to annotate as input  
 (following the template in ""${PROJECT_DIR}/assets/test_data/genomes_test_list.csv"")  
@@ -51,5 +55,5 @@ export UNIPROT_DIR="/path/to/your/static-storage-dir/uniprot_dir"
 
 To run the pipeline execute:
 ```
-nextflow run main.nf --csv_file $INPUT_CSV --outdir $OUTPUT_PATH --orthodb_dir $ORTHODB_FOLDER --assemblies_dir $ASSEMBLIES_DIR --rna_fastq_dir $FASTQ_DIR --uniprot_dir $UNIPROT_DIR  --ena_csv_dir $ENA_CSV_DIR
+nextflow run main.nf --csv_file $INPUT_CSV --outdir $OUTPUT_PATH --orthodb_dir $ORTHODB_FOLDER --assemblies_dir $ASSEMBLIES_DIR --rna_fastq_dir $FASTQ_DIR --uniprot_dir $UNIPROT_DIR  --ena_csv_dir $ENA_CSV_DIR -profile slurm
 ```
