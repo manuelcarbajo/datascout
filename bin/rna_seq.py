@@ -12,13 +12,14 @@ import csv_ENA_download
 
 def generate_ena_csv(tax_ranks,genome ,baseDir):
     data_found = False
-    for l in range(0,4):
+    for l in range(0,3):
         current_name = "level_" + str(l) + "_name"
         current_tax = "level_" + str(l) + "_tax"
         current_hierarchy = "level_" + str(l) + "_hierarchy"
         user_prefered_tax = False
         #TO DO - review filtering conditions, otherwise ranks_dict["species"] is just enough.
-        if tax_ranks[current_hierarchy] <= mp.ranks_dict["species"] and not data_found:
+        #if we haven't found transcriptomic data at species level, don't go further and return null.
+        if tax_ranks[current_hierarchy] < mp.ranks_dict["species"] and not data_found:
             g_name = tax_ranks[current_name]
 
             try:
