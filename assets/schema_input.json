@@ -1,0 +1,42 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/manuelcarbajo/datascout/master/assets/schema_input.json", 
+    "title": "datascout - params.input schema",
+    "description": "Schema for the file provided with params.input",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "species_name": {
+                "type": "string",
+                "errorMessage": "Genome taxonomy"
+            },
+            "taxid": {
+                "type": "int",
+                "errorMessage": "Genome taxid NCBI"
+            },
+            "ena_accession": {
+                "type": "string",
+                "errorMessage": "GCA accession for submitted genome"
+            },
+            "orthodb": {
+                "type": "string",
+                "errorMessage": "Lowest tax level for orthodb"
+            },
+            "uniprot": {
+                "type": "string",
+                "errorMessage": "Lowest tax level for uniprot"
+            },
+            "rfam": {
+                "type": "string",
+                "errorMessage": "Lowest tax level for rfam"
+            },
+            "uniprot_evidence" {
+                "type": "string",
+                "errorMessage": "Preferred uniprot evidence level"
+            }
+            
+        },
+        "required": ["species_name", "taxid", "ena_accession"]
+    }
+}
