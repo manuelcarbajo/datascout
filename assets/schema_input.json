@@ -9,31 +9,31 @@
         "properties": {
             "species_name": {
                 "type": "string",
-                "errorMessage": "Genome taxonomy"
+                "description": "Genome taxonomy"
             },
             "taxid": {
-                "type": "int",
-                "errorMessage": "Genome taxid NCBI"
+                "type": "integer",
+                "description": "Genome taxid NCBI"
             },
             "ena_accession": {
                 "type": "string",
-                "errorMessage": "GCA accession for submitted genome"
+                "description": "GCA accession for submitted genome"
             },
             "orthodb": {
                 "type": "string",
-                "errorMessage": "Lowest tax level for orthodb"
+                "description": "Lowest tax level for orthodb"
             },
             "uniprot": {
                 "type": "string",
-                "errorMessage": "Lowest tax level for uniprot"
+                "description": "Lowest tax level for uniprot"
             },
             "rfam": {
                 "type": "string",
                 "errorMessage": "Lowest tax level for rfam"
             },
-            "uniprot_evidence" {
-                "type": "string",
-                "errorMessage": "Preferred uniprot evidence level"
+            "uniprot_evidence": {
+                "type": "integer",
+                "description": "Preferred uniprot evidence level"
             }
             
         },
