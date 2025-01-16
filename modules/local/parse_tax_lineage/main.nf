@@ -1,6 +1,6 @@
 process TAX_LINEAGE {
 
-    container 'community.wave.seqera.io/library/python_pip_ete3:8e576a33d38ca6fa'
+    container 'quay.io/biocontainers/ete3:3.1.2'
         
     publishDir "${params.output}", mode: 'copy', pattern: "*tax_ranks.tsv"
     label 'assign'
@@ -8,6 +8,7 @@ process TAX_LINEAGE {
     input:
       tuple val(meta), val(taxid)
       val(db_path)
+      val(taxdump)
     
     output:
       tuple val(meta), file("*_tax_ranks.tsv")
@@ -15,7 +16,7 @@ process TAX_LINEAGE {
     script:
     prefix = meta.id
     """
-    parse_tax_lineage.py --taxid ${taxid} --db_path ${db_path} --output ${prefix}_tax_ranks.tsv
+    parse_tax_lineage.py --taxid ${taxid} --output ${prefix}_tax_ranks.tsv --db_path "${db_path}", --taxdump "${taxdump}"
     """
 }
 

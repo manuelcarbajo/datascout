@@ -6,6 +6,7 @@ import argparse
 #   The hierarchy follows: "NCBI Taxonomy: a comprehensive update on curation, resources and tools" 
 #   DOI : 10.1093/database/baaa062
 #   Supplementary Figure S2
+
 ranks_dict = {
     'superkingdom': 1, 'kingdom': 2, 'subkingdom': 3, 'superphylum': 4, 'phylum': 5, 
     'subphylum': 6, 'infraphylum': 7, 'superclass': 8, 'class': 9, 'subclass': 10, 
@@ -18,10 +19,14 @@ ranks_dict = {
 }
 
 
-def get_tax_lineage(taxid, db_path, outfile):
+def get_tax_lineage(taxid, outfile, db_path=None, taxdump=None):
 
-    ncbi = NCBITaxa(dbfile=db_path)
-    ncbi.update_taxonomy_database()
+    if db_path and taxdump:
+        ncbi = NCBITaxa(dbfile=db_path, taxdump_file=taxdump)
+    else:
+        ncbi = NCBITaxa()    
+    
+    #   ncbi.update_taxonomy_database()
 
     lineage = ncbi.get_lineage(taxid)
     lineage_names = ncbi.get_taxid_translator(lineage)
@@ -48,10 +53,17 @@ def main():
         "-t", "--taxid", type=int, help="Taxid to retrieve lineage information"
     )
     parser.add_argument(
-        "-d", "--db_path", type=str, help="Path to the ete3 SQLite taxonomy database (taxa.sqlite)"
+        "-d", "--db_path", type=str, help="Path to the ete3 SQLite taxonomy database (taxa.sqlite)", required=False
+    )
+    parser.add_argument(
+        "-td", "--taxdump", type=str, help="Path to the taxdump.tar.gz", required=False
     )
     parser.add_argument(
         "-o", "--output", type=str, help="output file name"
     )
     args = parser.parse_args()
-    get_tax_lineage(args.taxid, args.db_path, args.output)
+    get_tax_lineage(args.taxid, args.output, args.db_path, args.taxdump)
+
+
+if __name__ == "__main__":
+    main()
