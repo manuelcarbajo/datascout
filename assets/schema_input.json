@@ -7,6 +7,10 @@
     "items": {
         "type": "object",
         "properties": {
+            "genome": {
+                "type": "string",
+                "description": "GCA accession for submitted genome"
+            },
             "species_name": {
                 "type": "string",
                 "description": "Genome taxonomy"
@@ -15,28 +19,28 @@
                 "type": "integer",
                 "description": "Genome taxid NCBI"
             },
-            "ena_accession": {
-                "type": "string",
-                "description": "GCA accession for submitted genome"
-            },
             "orthodb": {
                 "type": "string",
-                "description": "Lowest tax level for orthodb"
+                "description": "Lowest tax level for orthodb",
+                "default": "default"
             },
             "uniprot": {
                 "type": "string",
-                "description": "Lowest tax level for uniprot"
+                "description": "Lowest tax level for uniprot",
+                "default": "default"
             },
             "rfam": {
                 "type": "string",
-                "errorMessage": "Lowest tax level for rfam"
+                "errorMessage": "Lowest tax level for rfam",
+                "default": "default"
             },
             "uniprot_evidence": {
                 "type": "integer",
-                "description": "Preferred uniprot evidence level"
+                "description": "Preferred uniprot evidence level",
+                "default": 2
             }
             
         },
-        "required": ["species_name", "taxid", "ena_accession"]
+        "required": ["genome","species_name", "taxid"]
     }
 }
