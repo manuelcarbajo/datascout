@@ -1,27 +1,25 @@
-
 process NCBI_ORTHODB {
 
-    container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
+    container 'community.wave.seqera.io/library/python_pip_biopython_requests:725bda83fb97ec48'
     debug true
-    publishDir "${params.outdir}/", mode: "copy"
-    errorStrategy  'retry'
+    publishDir "${params.output}", mode: "copy"
+
+    errorStrategy 'retry'
     maxRetries 2
 
     input:
-    path csv_file
-    path output_path
-    path orthodb_folder
-    path ncbi_db_conf
+      tuple val(meta), file(tax_ranks)
+      tuple val(meta), val(max_rank)
 
     output:
-    path("genome_anno/*/*_tax_ranks.txt"), emit: genomes
+      tuple val(meta), path("${meta.id}_orthodb_dir"), emit: orthodb_results
 
     script:
     """
-    echo begining orthodb MODULE
-    target_dir=\$(readlink orthodb_dir)
-    mkdir -p "\$target_dir"
-    ncbi_ortho_DBdata.py ${csv_file} ${ncbi_db_conf} ${projectDir} ${orthodb_folder}
+    mkdir -p ${meta.id}_orthodb_dir
+    ncbi_orthodb_data.py --tax_file ${tax_ranks} --lineage_max ${max_rank} --output "${meta.id}_orthodb_dir"
     """
-
 }
+
+
+// Get proteins from orthodb and reformat into combined fasta file per taxid

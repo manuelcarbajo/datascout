@@ -11,7 +11,7 @@ process TAX_LINEAGE {
       val(taxdump)
     
     output:
-      tuple val(meta), file("*_tax_ranks.tsv")
+      tuple val(meta), file("*_tax_ranks.tsv"), emit: tax_ranks
     
     script:
     prefix = meta.id

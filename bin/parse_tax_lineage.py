@@ -40,7 +40,7 @@ def get_tax_lineage(taxid, outfile, db_path=None, taxdump=None):
             order = ranks_dict.get(rank)
             tax_dict[order] = [rank, tax_id, taxname]
     
-    sorted_tax_dict = dict(sorted(tax_dict.items()))
+    sorted_tax_dict = dict(sorted(tax_dict.items(), reverse=True))
     with open(outfile, 'w') as tax_ranks:
         for key, value in sorted_tax_dict.items():
             tax_data = '\t'.join(map(str, value))
