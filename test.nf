@@ -37,6 +37,7 @@ samplesheet.multiMap {sample_id, tax_name, taxid, orthodb_tax, uniprot_tax, rfam
 */
 include { TAX_LINEAGE                } from "./modules/local/parse_tax_lineage/main.nf"
 include { NCBI_ORTHODB               } from "./modules/local/ncbi_orthodb/main.nf"
+include { GENOME_ASSEMBLY            } from "./modules/local/genome_assembly/main.nf"
 // include { NCBI_ORTHODB           } from "${projectDir}/modules/local/ncbi_orthodb/main.nf"
 // include { GENOME_ASSEMBLY        } from "${projectDir}/modules/local/genome_assembly/main.nf"
 // include { UNIPROT_DATA           } from "${projectDir}/modules/local/uniprot_data/main.nf"
@@ -54,8 +55,13 @@ include { NCBI_ORTHODB               } from "./modules/local/ncbi_orthodb/main.n
 
 workflow DATASCOUT{
 
+    GENOME_ASSEMBLY(input.genome)
+    
     TAX_LINEAGE(input.taxid, params.ncbi_db, params.taxdump)
     NCBI_ORTHODB(TAX_LINEAGE.out.tax_ranks, input.orthodb_tax)
+
+    
+
 }
 
 
