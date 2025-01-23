@@ -155,8 +155,13 @@ def main():
     )
     args = parser.parse_args()
 
+    if args.lineage_max == "default":
+        max_lineage = None
+    else:
+        max_lineage = args.lineage_max
+
     taxa_dict = parse_taxa(args.tax_file)
-    clusters = get_orthodb_data(taxa_dict, args.lineage_max)
+    clusters = get_orthodb_data(taxa_dict, max_lineage)
     
     # Chop the data in small blocks and query them with a wait intervall to avoid spaming orthoDB
     num_clusters = len(clusters)

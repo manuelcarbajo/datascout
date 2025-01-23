@@ -54,13 +54,13 @@ def query_uniprot(taxa_dict, output_dir, preferred_rank=None, preferred_evidence
     logging.info("Getting UniProt data")
 
     if preferred_rank:
-        taxid = taxa_dict[rank]
+        taxid = taxa_dict[preferred_rank]
         response = build_query(taxid, preferred_evidence)
         if response.status_code == 200:
             uniprot_fasta_file = os.path.join(output_dir, f"{taxid}_uniprot_raw.faa")
             with open(uniprot_fasta_file, 'wb') as outfile:
                 outfile.write(response.content)
-            return uniprot_fasta_file
+            return uniprot_fasta_file, taxid
         if response.status_code == 204:
             logging.info(f"No uniprot data found at the preferred rank {preferred_rank} with taxid {taxid}")
             return None
@@ -72,7 +72,7 @@ def query_uniprot(taxa_dict, output_dir, preferred_rank=None, preferred_evidence
             uniprot_fasta_file = os.path.join(output_dir, f"{taxid}_uniprot_raw.faa")
             with open(uniprot_fasta_file, 'wb') as outfile:
                 outfile.write(response.content)
-                return uniprot_fasta_file
+                return uniprot_fasta_file, taxid
         if response.status_code == 204:
             logging.info(f"No data found for taxid {taxid}. Moving to next rank.")
     
@@ -80,12 +80,11 @@ def query_uniprot(taxa_dict, output_dir, preferred_rank=None, preferred_evidence
     return None
 
 #   #>sp|Q1PCB1|PDXK_BOMMO Pyridoxal kinase OS=Bombyx mori OX=7091 GN=Pdxk PE=1 SV=1
-def reformat_fasta(fasta_path, output_dir):
+def reformat_fasta(fasta_path, output_dir, taxid):
     """Simplify input ID to identifier and version labelled with SV. Elminate duplicates
     Input:>sp|Q1PCB1|PDXK_BOMMO Pyridoxal kinase OS=Bombyx mori OX=7091 GN=Pdxk PE=1 SV=1
     Output: >Q1PCB1.1"""
     uniprot_ids = set()
-    taxid = fasta_path.split('_')[0]
     uniprot_fasta_file = os.path.join(output_dir, f"{taxid}_uniprot_proteins.faa")
     with open(uniprot_fasta_file, 'w') as outfile:
         for entry in SeqIO.parse(fasta_path, "fasta"):
@@ -114,9 +113,13 @@ def main():
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
+    if args.rank == "default":
+        rank = None
+    else:
+        rank = args.rank
     taxa_dict = parse_taxa(args.tax_file)
-    raw_file_path = query_uniprot(taxa_dict, args.output_dir, args.rank, args.evidence)
-    reformat_fasta(raw_file_path, args.output_dir)
+    raw_file_path, taxid = query_uniprot(taxa_dict, args.output_dir, rank, args.evidence)
+    reformat_fasta(raw_file_path, args.output_dir, taxid)
 
 
 
