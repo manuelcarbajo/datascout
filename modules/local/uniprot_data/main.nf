@@ -1,20 +1,25 @@
-#!/usr/bin/env nextflow
 process UNIPROT_DATA {
 
-    container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
+    container 'community.wave.seqera.io/library/python_pip_biopython_requests:725bda83fb97ec48'
     debug true
-    storeDir "${params.uniprot_dir}"
-    errorStrategy  'retry'
+    publishDir "${params.output}", mode: "copy"
+
+    errorStrategy 'retry'
     maxRetries 2
 
     input:
-    tuple val(genome), path(tax_ranks)
+      tuple val(meta), file(tax_ranks)
+      tuple val(meta), val(rank)
+      tuple val(meta), val(evidence)
 
     output:
-    tuple val(genome), path ("${genome}/*_uniprot_proteins.fa"), path("${genome}/*_uniprot_proteins.fa.fai"), emit: uniprot_data
+      tuple val(meta), path("${meta.id}_uniprot_dir"), emit: uniprot_results
 
     script:
     """
-    uniprot_data.py ${genome} ${tax_ranks} ${projectDir}
+    mkdir -p ${meta.id}_uniprot_dir
+    uniprot_data.py --tax_file ${tax_ranks} --output "${meta.id}_uniprot_dir" --rank ${rank} --evidence ${evidence}
     """
 }
+
+// Get proteins from uniprot and reformat headers

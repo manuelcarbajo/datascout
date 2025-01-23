@@ -97,7 +97,7 @@ def get_sequences(cluster):
         "id": str(cluster),
     }
     orthodb_dir = f"{taxid}_sequences"
-    fasta_file_path = os.path.join(orthodb_dir, f"{cluster}.fasta")
+    fasta_file_path = os.path.join(orthodb_dir, f"{cluster}.faa")
     if not os.path.exists(orthodb_dir):
         os.makedirs(orthodb_dir, exist_ok=True)
     if not os.path.exists(fasta_file_path):
@@ -126,12 +126,12 @@ def create_combined_fa(taxid, orthodb_ncbi_subfolder):
     remove description in fasta headers"""
 
     ortho_ids = set()
-    final_ortho_fasta = os.path.join(orthodb_ncbi_subfolder, f"combined_orthodb_{taxid}.fasta")
+    final_ortho_fasta = os.path.join(orthodb_ncbi_subfolder, f"combined_orthodb_{taxid}.faa")
     if os.path.exists(final_ortho_fasta):
         logging.warning(f"combined fasta file {final_ortho_fasta} exists. Overwriting...")
         os.remove(final_ortho_fasta)
     with open(final_ortho_fasta, 'w') as outfile:
-        for fasta_file in glob.glob(os.path.join(orthodb_ncbi_subfolder, "*.fasta")):
+        for fasta_file in glob.glob(os.path.join(orthodb_ncbi_subfolder, "*.faa")):
             if not "combined" in fasta_file:
                 for entry in SeqIO.parse(fasta_file, "fasta"):
                     if entry.id not in ortho_ids:

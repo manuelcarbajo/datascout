@@ -1,106 +1,124 @@
 #!/usr/bin/env python3
 
-import sys
 import requests
 import os
-import subprocess
-import gzip
-from datetime import datetime
-import my_process as mp
+import argparse
+import logging
+from Bio import SeqIO
+
+URL = "https://rest.uniprot.org/uniprotkb/stream?"
+
+SEARCH_URL_ARGS = {
+    "compressed" : "false",
+    "format": "fasta"
+}
+
+evidence_1 = "existence:1"
+evidence_2 = "existence:1 OR existence:2"
+evidence_3 = "existence:1 OR existence:2 OR existence:3"
 
 
-def query_UniProt(tax_ranks, baseDir, genome_root_folder):
-    log_file = tax_ranks['log_dir'] + "/uniprot.log"
-    data_found = False
+def parse_taxa(taxa_file):
+    logging.info("Parsing taxa lineages from file")
+    tax_dict = {}
+    with open(taxa_file, 'r') as taxa:
+        for line in taxa:
+            data = line.rstrip().split('\t')
+            tax_dict[data[1]] = data[2]
+    return tax_dict
 
-    with open(log_file,'a') as logger:
-        for l in range(4):
-            current_rank = "level_" + str(l) + "_rank"
-            current_name = "level_" + str(l) + "_name"
-            current_tax = "level_" + str(l) + "_tax"
-            if tax_ranks[current_name] and not data_found:
-                g_name = tax_ranks[current_name]
-                genome_name = mp.process_string(g_name)
-                try:
-                    genome_tax = tax_ranks ["uniprot_acc"]
-                    current_rank = "user defined " + str(genome_tax)
-                except Exception:
-                    genome_tax = tax_ranks [current_tax]
+def build_query(taxid, evidence_level):
+    if evidence_level == '1':
+        query = f"(taxonomy_id={taxid} AND ({evidence_1}))"
+    elif evidence_level == '2':
+        query = f"(taxonomy_id={taxid} AND ({evidence_2}))"
+    elif evidence_level == "3":
+        query = f"(taxonomy_id={taxid} AND ({evidence_3}))"
+    #   default is evidence 1 and 2
+    else:
+        query = f"(taxonomy_id={taxid} AND ({evidence_2}))"
+    
+    params = SEARCH_URL_ARGS.copy()
+    params["query"] = query
 
-                evidence_level_3 = int(tax_ranks["uniprot_evidence"]) == 3
+    try:
+        response = requests.get(URL, params)
+        return response
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        raise
 
-                if not os.path.exists(genome_root_folder):
-                    os.makedirs(genome_root_folder)
-                
-                root_path_prefix =  genome_root_folder + "/" + genome_name
-                uniprot_fasta_file = root_path_prefix + "_uniprot_raw.fa"
-                uniprot_fasta_fai_file = root_path_prefix + "_uniprot_raw.fa.fai"
-                
-                url = "https://rest.uniprot.org/uniprotkb/stream?compressed=false&format=fasta&query=%28%28taxonomy_id%3A" + str(genome_tax) + "%29+AND+%28%28existence%3A1%29+OR+%28existence%3A2%29%29%29"
-                if evidence_level_3:
-                    url = "https://rest.uniprot.org/uniprotkb/stream?compressed=false&format=fasta&query=%28%28taxonomy_id%3A" + str(genome_tax) + "%29+AND+%28%28existence%3A1%29+OR+%28existence%3A2%29+OR+%28existence%3A3%29%29%29"
-                
-                logger.write("url (evidence_level_3-"+ str(evidence_level_3)+ "-)=" + url + "\n")
-                try:
-                    response = requests.get(url)
-                    
-                    if response.status_code == 200 and response.text:
-                        try:
-                            successful_rank = tax_ranks[current_rank]
-                        except:
-                            successful_rank = current_rank
-                        print("SUCCESS at level " + str(l) + ": " + uniprot_fasta_file)
-                        logger.write("SUCCESS with rank " + successful_rank +  " (level " + str(l) + "): " + uniprot_fasta_file + "\nwith url: " + url + "\n\n")             
-                        if os.path.exists(uniprot_fasta_file):
-                            os.remove(uniprot_fasta_file)
-                            os.makedirs(uniprot_fasta_file)
-                        if os.path.exists(uniprot_fasta_fai_file):
-                            os.remove(uniprot_fasta_fai_file)
-                            os.makedirs(uniprot_fasta_fai_file)
-                        
-                        with open(uniprot_fasta_file,"w") as gf:
-                            gf.write(response.text)
-                        data_found = True
-                        print("raw uniprot_fasta_file created at  "  + uniprot_fasta_file)
-                        index_fasta(root_path_prefix, baseDir)
-                    else:
-                        logger.write("Uniprot unsuccesful status_code: " + str(response.status_code) + "\nwith url: " + url + "\n\n")
-                except Exception as err:
-                    logger.write("Error querying UniProt: " + str(err) + " at level " + str(l) + " : " + genome_name + " " + str(genome_tax) + " dir: " + uniprot_fasta_file + "\n")
-            elif data_found:
-                break
+def query_uniprot(taxa_dict, output_dir, preferred_rank=None, preferred_evidence=None):
+    """query uniprot per taxonmic rank. Stop when non-empty result 
+    is returned. Use rank if provided by user"""
+    logging.info("Getting UniProt data")
 
-def index_fasta(root_path_prefix, baseDir):
-    # Paths for intermediate and final files
-    fasta_file = root_path_prefix + "_uniprot_raw.fa"
-    reheaded_fasta = root_path_prefix + "_reheaded_uniprot.fasta"
-    deduped_fasta = root_path_prefix + "_deduped_uniprot.fasta"
-    output_fasta = root_path_prefix + "_uniprot_proteins.fa"
-   
-    # Reheader the FASTA file using the Perl script
-    reheader_command = f"perl {baseDir}/bin/reheader_uniprot_seqs.pl {fasta_file} > {reheaded_fasta}"
-    subprocess.run(reheader_command, shell=True, check=True)
-    print("reheaded file: " + reheaded_fasta) 
-    # Remove duplicate sequences using the Perl script
-    dedup_command = f"perl {baseDir}/bin/remove_dup_seqs.pl {reheaded_fasta} > {output_fasta}"
-    subprocess.run(dedup_command, shell=True, check=True)
-    print("deduped_fasta file: " + deduped_fasta)
-    # Index the final output using samtools
-    samtools_command = f"samtools faidx {output_fasta}"
-    subprocess.run(samtools_command, shell=True, check=True)
-    print("output_fasta file: " + output_fasta)
+    if preferred_rank:
+        taxid = taxa_dict[rank]
+        response = build_query(taxid, preferred_evidence)
+        if response.status_code == 200:
+            uniprot_fasta_file = os.path.join(output_dir, f"{taxid}_uniprot_raw.faa")
+            with open(uniprot_fasta_file, 'wb') as outfile:
+                outfile.write(response.content)
+            return uniprot_fasta_file
+        if response.status_code == 204:
+            logging.info(f"No uniprot data found at the preferred rank {preferred_rank} with taxid {taxid}")
+            return None
+
+    for rank, taxid in taxa_dict.items():
+        logging.info(f"Searching UniProt entries for taxid {taxid}")
+        response = build_query(taxid, preferred_evidence)
+        if response.status_code == 200:
+            uniprot_fasta_file = os.path.join(output_dir, f"{taxid}_uniprot_raw.faa")
+            with open(uniprot_fasta_file, 'wb') as outfile:
+                outfile.write(response.content)
+                return uniprot_fasta_file
+        if response.status_code == 204:
+            logging.info(f"No data found for taxid {taxid}. Moving to next rank.")
+    
+    logging.info("No UniProt data found at any taxonomic rank.")
+    return None
+
+#   #>sp|Q1PCB1|PDXK_BOMMO Pyridoxal kinase OS=Bombyx mori OX=7091 GN=Pdxk PE=1 SV=1
+def reformat_fasta(fasta_path, output_dir):
+    """Simplify input ID to identifier and version labelled with SV. Elminate duplicates
+    Input:>sp|Q1PCB1|PDXK_BOMMO Pyridoxal kinase OS=Bombyx mori OX=7091 GN=Pdxk PE=1 SV=1
+    Output: >Q1PCB1.1"""
+    uniprot_ids = set()
+    taxid = fasta_path.split('_')[0]
+    uniprot_fasta_file = os.path.join(output_dir, f"{taxid}_uniprot_proteins.faa")
+    with open(uniprot_fasta_file, 'w') as outfile:
+        for entry in SeqIO.parse(fasta_path, "fasta"):
+            id = entry.id.split('|')[1]
+            desc = entry.description.split("=")[-1]
+            seq_id = f"{id}.{desc}"
+            if seq_id not in uniprot_ids:
+                outfile.write(f">{seq_id}\n")
+                outfile.write(f"{str(entry.seq)}\n")
+                uniprot_ids.add(seq_id)
+
+def main():
+    parser = argparse.ArgumentParser(description="Fetch data from orthodb")
+    parser.add_argument(
+        "-t", "--tax_file", type=str, help="File with taxonomic lineage information", required=True
+    )
+    parser.add_argument(
+        "-o", "--output_dir", type=str, help="output directory", required=True
+    )
+    parser.add_argument(
+        "-e", "--evidence", type=str, help="Highest evidence level to search Uniprot proteins", required=False
+    )
+    parser.add_argument(
+        "-r", "--rank", type=str, help="Preferred taxonomic rank to search for proteins", required=False 
+    )
+    args = parser.parse_args()
+
+    os.makedirs(args.output_dir, exist_ok=True)
+    taxa_dict = parse_taxa(args.tax_file)
+    raw_file_path = query_uniprot(taxa_dict, args.output_dir, args.rank, args.evidence)
+    reformat_fasta(raw_file_path, args.output_dir)
+
 
 
 if __name__ == "__main__":
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    if len(sys.argv) < 1:
-        print("The path to the genome is missing as an argument.")
-    else:
-        genome_name = sys.argv[1]
-        tax_ranks = sys.argv[2]
-        baseDir = sys.argv[3]
-        print("** start UNIPROT for " + genome_name + " : " + str(now))
-        tr = mp.read_tax_rank(tax_ranks)
-        query_UniProt(tr, baseDir, genome_name)
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    print("** endtime UNIPROT for " + genome_name + " : " + str(now))
+    main()
