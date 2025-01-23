@@ -1,6 +1,7 @@
 
 process NCBI_ORTHODB {
 
+    label 'process_medium'
     container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
     debug true
     publishDir "${params.outdir}/", mode: "copy"
