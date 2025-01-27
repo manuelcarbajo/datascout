@@ -6,6 +6,8 @@ import argparse
 import logging
 from Bio import SeqIO
 
+logging.basicConfig(level=logging.INFO)
+
 URL = "https://rest.uniprot.org/uniprotkb/stream?"
 
 SEARCH_URL_ARGS = {
@@ -24,6 +26,7 @@ def parse_taxa(taxa_file):
     with open(taxa_file, 'r') as taxa:
         for line in taxa:
             data = line.rstrip().split('\t')
+            #   rank: taxid
             tax_dict[data[1]] = data[2]
     return tax_dict
 
