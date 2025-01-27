@@ -21,17 +21,22 @@
             },
             "orthodb": {
                 "type": "string",
-                "description": "Lowest tax level for orthodb",
+                "description": "Maximum tax level for orthodb",
                 "default": "default"
             },
             "uniprot": {
                 "type": "string",
-                "description": "Lowest tax level for uniprot",
+                "description": "Preferred tax level for uniprot",
                 "default": "default"
             },
             "rfam": {
                 "type": "string",
-                "errorMessage": "Lowest tax level for rfam",
+                "errorMessage": "Preferred tax level for Rfam",
+                "default": "default"
+            },
+            "ena":{
+                "type": "string",
+                "errorMessage": "Preferred tax level for ENA transcriptomes",
                 "default": "default"
             },
             "uniprot_evidence": {
