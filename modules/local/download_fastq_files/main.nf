@@ -1,21 +1,24 @@
 #!/usr/bin/env nextflow
 process DOWNLOAD_FASTQ_FILES {
 
-    container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
+    container 'community.wave.seqera.io/library/python_pip_boto3_pandas_pigz:9f3d9340e491c480'
+    debug true
+    publishDir "${params.output}", mode: "copy"
+
     errorStrategy 'retry'
     maxRetries 2
-    debug true
-    queue 'datamover'
-    storeDir "${params.rna_fastq_dir}"
 
     input:
-    tuple val(fastq_file), val(md5)
+      tuple val(meta), file(ena_metadata)
+      val(start_line)
 
     output:
-    path "${fastq_file}"
+      tuple val(meta), path("${meta.id}_rna_fastq_dir"), emit: fastq_files
 
     script:
     """
-    storeDir_fastq_files.py ${fastq_file} ${md5} ${baseDir}
+    download_rnaseq_fastqs.py --startline ${start_line} --transcriptomes ${ena_metadata} --output-dir "${meta.id}_rna_fastq_dir"
     """
 }
+
+// Download subset of fastq files for 5 accessions
