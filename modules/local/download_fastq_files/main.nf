@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 process DOWNLOAD_FASTQ_FILES {
 
-    container 'community.wave.seqera.io/library/python_pip_boto3_pandas_pigz:9f3d9340e491c480'
+    container 'community.wave.seqera.io/library/pigz_python_pip_boto3_pandas:b10b66ffdecc53f1'
     debug true
     publishDir "${params.output}", mode: "copy"
 
