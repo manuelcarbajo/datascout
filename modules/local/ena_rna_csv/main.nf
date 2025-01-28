@@ -13,12 +13,13 @@ process ENA_RNA_CSV {
       tuple val(meta), val(rank)
 
     output:
-    tuple val(meta), path("${meta}_ENA_filtered_rna.csv"), emit: rna_csv
+    tuple val(meta), path("${meta.id}_ENA_filtered_rna.csv"), emit: rna_csv
 
     script:
+    prefix = meta.id
     """
-    rna_seq.py --tax_file ${tax_ranks} --output_file "${meta}_ENA_filtered_rna.csv" --rank ${rank}
+    rna_seq.py --tax_file ${tax_ranks} --output_file "${prefix}_ENA_filtered_rna.csv" --rank ${rank}
     """
 }
 
-// Get transcriptome metdata from ena, filtered and reordered by sample name
+// Get transcriptome metadata from ena, filtered and reordered by sample name
