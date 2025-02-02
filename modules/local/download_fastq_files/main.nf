@@ -13,7 +13,7 @@ process DOWNLOAD_FASTQ_FILES {
       val(start_line)
 
     output:
-      tuple val(meta), path("${meta.id}_rna_fastq_dir"), emit: fastq_files
+      tuple val(meta), path("${meta.id}_rna_fastq_dir"), path("${meta.id}_rna_fastq_dir/*"), emit: fastq_files
 
     script:
     """

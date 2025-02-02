@@ -17,7 +17,7 @@ include { samplesheetToList } from 'plugin/nf-schema'
 samplesheet = Channel.fromList(samplesheetToList(params.samplesheet, "${projectDir}/assets/schema_input.json"))
 
 /* split the inputs */
-samplesheet.multiMap {sample_id, tax_name, taxid, orthodb_tax, uniprot_tax, rfam_tax, uniprot_evidence ->
+samplesheet.multiMap {sample_id, tax_name, taxid, orthodb_tax, uniprot_tax, rfam_tax, ena_tax, uniprot_evidence ->
     meta = [ id: sample_id ]
     genome: [ meta, sample_id ]
     tax_name: [ meta, tax_name ]
@@ -25,6 +25,7 @@ samplesheet.multiMap {sample_id, tax_name, taxid, orthodb_tax, uniprot_tax, rfam
     orthodb_tax: [ meta, orthodb_tax ]
     uniprot_tax: [ meta, uniprot_tax ]
     rfam_tax: [ meta, rfam_tax ]
+    ena_tax: [ meta, ena_tax ]
     uniprot_evidence: [ meta, uniprot_evidence ]
 }.set {
     input
@@ -38,13 +39,10 @@ samplesheet.multiMap {sample_id, tax_name, taxid, orthodb_tax, uniprot_tax, rfam
 include { TAX_LINEAGE                } from "./modules/local/parse_tax_lineage/main.nf"
 include { NCBI_ORTHODB               } from "./modules/local/ncbi_orthodb/main.nf"
 include { GENOME_ASSEMBLY            } from "./modules/local/genome_assembly/main.nf"
-// include { NCBI_ORTHODB           } from "${projectDir}/modules/local/ncbi_orthodb/main.nf"
-// include { GENOME_ASSEMBLY        } from "${projectDir}/modules/local/genome_assembly/main.nf"
-// include { UNIPROT_DATA           } from "${projectDir}/modules/local/uniprot_data/main.nf"
-// include { RFAM_ACCESSIONS        } from "${projectDir}/modules/local/rfam_accessions/main.nf"
-// include { ENA_RNA_CSV            } from "${projectDir}/modules/local/ena_rna_csv/main.nf"
-// include { FILTER_RNA_CSV         } from "${projectDir}/modules/local/filter_rna_csv/main.nf"
-// include { DOWNLOAD_FASTQ_FILES   } from "${projectDir}/modules/local/download_fastq_files/main.nf"
+include { UNIPROT_DATA               } from "./modules/local/uniprot_data/main.nf"
+include { RFAM_ACCESSIONS            } from "./modules/local/rfam_accessions/main.nf"
+include { ENA_RNA_CSV                } from "./modules/local/ena_rna_csv/main.nf"
+include { DOWNLOAD_FASTQ_FILES       } from "./modules/local/download_fastq_files/main.nf"
 // include { SOURMASH_RNA_CSV       } from "${projectDir}/modules/local/sourmash_rna_csv/main.nf"
 
 /*
@@ -56,44 +54,41 @@ include { GENOME_ASSEMBLY            } from "./modules/local/genome_assembly/mai
 workflow DATASCOUT{
 
     GENOME_ASSEMBLY(input.genome)
-    
+
     TAX_LINEAGE(input.taxid, params.ncbi_db, params.taxdump)
-    NCBI_ORTHODB(TAX_LINEAGE.out.tax_ranks, input.orthodb_tax)
+    taxa_ch = TAX_LINEAGE.out.tax_ranks
+    NCBI_ORTHODB(taxa_ch, input.orthodb_tax)
 
+    UNIPROT_DATA(taxa_ch, input.uniprot_tax, input.uniprot_evidence)
+    RFAM_ACCESSIONS(taxa_ch, input.rfam_tax, params.rfam_db)
+
+    ena_ch = ENA_RNA_CSV(taxa_ch, input.ena_tax)
+
+    DOWNLOAD_FASTQ_FILES(ena_ch, 1)
+    fastq_ch = DOWNLOAD_FASTQ_FILES.out.fastq_files
+
+    // In progress for sourmash
+    // Channel
+    // .fromProcess('DOWNLOAD_PAIRED_FASTQ_FILES')
+    // .flatMap { meta, dir, fastqs ->
+    //     // Collect paired FASTQ files using their naming pattern
+    //     filePairs = fastqs.groupBy { file ->
+    //         file.baseName.replaceFirst(/_[12]$/, '') // Extract run ID from _1/_2.fastq.gz
+    //     }.collect { runId, files ->
+    //         def forward = files.find { it.name.endsWith('_1.fastq') }
+    //         def reverse = files.find { it.name.endsWith('_2.fastq') }
+    //         tuple(meta, forward, reverse)
+    //     }
+    //     return filePairs
+    // }
+    // .set { paired_fastq_files }
+
+    // paired_fastq_files.view()
     
-
 }
 
 
-// workflow DATASCOUT {
 
-//     take:
-//     ch_csv_file// channel: csv_file read in from input param --csv_file
-//     ch_outdir
-//     ch_orthodb_dir
-//     ch_ncbi_conf
-
-//     main:
-
-//     ch_versions = Channel.empty()
-
-//     NCBI_ORTHODB (
-//         ch_csv_file,
-//         ch_outdir,
-//         ch_orthodb_dir,
-//         ch_ncbi_conf,
-//     )
-
-//     def ch_genomes = NCBI_ORTHODB.out.genomes
-//         .flatten()
-//         .map{ tax_ranks_path -> tuple(tax_ranks_path.getParent().getBaseName(), tax_ranks_path) }
-//     ch_genomes.view()
-//     GENOME_ASSEMBLY(ch_genomes).set { ch_assembly }
-//     UNIPROT_DATA(ch_genomes).set { ch_uniprot }
-//     RFAM_ACCESSIONS(ch_genomes).set { ch_rfam }
-//     ENA_RNA_CSV(ch_genomes)
-
-//     FILTER_RNA_CSV(ENA_RNA_CSV.out.rna_csv)
  
 //     ch_rna_filtered_to_storeDir = FILTER_RNA_CSV.out.filtered_rna_csv
 //                                 .splitCsv(elem: 1, header: false, sep: '\t' )
