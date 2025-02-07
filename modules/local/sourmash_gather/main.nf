@@ -12,7 +12,6 @@ process SOURMASH_GATHER {
     input:
       tuple val(meta), path(genome_sig)
       tuple val(meta), path(list_of_read_sigs)
-      val(prefix)
 
     output:
       tuple val(meta), path("*.csv"), emit: gather_csv
@@ -20,7 +19,7 @@ process SOURMASH_GATHER {
 
     script:
     """
-    sourmash gather ${genome_sig} ${list_of_read_sigs.join(' ')} -o ${prefix}_round_gather.csv
+    sourmash gather ${genome_sig} ${list_of_read_sigs.join(' ')} -o ${meta.id}_sourmash_gather.csv
     """
 }
 

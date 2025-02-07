@@ -7,7 +7,6 @@ process DOWNLOAD_FASTQ_FILES {
         'community.wave.seqera.io/library/pigz_python_pip_boto3_pandas:ffa6f661982e0829' }"
 
     debug true
-    publishDir "${params.output}", mode: "copy"
     label 'process_high'
 
     errorStrategy 'retry'
@@ -19,12 +18,12 @@ process DOWNLOAD_FASTQ_FILES {
       val(num_lines)
 
     output:
-      tuple val(meta), path("${meta.id}_rna_fastq_dir/*"), emit: fastq_files
+      tuple val(meta), path("${meta.genome_id}_${meta.ena_tax}_rna_fastq_dir/*"), emit: fastq_files
 
     script:
     """
-    download_rnaseq_fastqs.py --startline ${start_line} --transcriptomes ${ena_metadata} --output-dir "${meta.id}_rna_fastq_dir" --numlines ${num_lines}
+    download_rnaseq_fastqs.py --startline ${start_line} --transcriptomes ${ena_metadata} --output-dir "${meta.genome_id}_${meta.ena_tax}_rna_fastq_dir/*" --numlines ${num_lines}
     """
 }
 
-// Download subset of fastq files for 5 accessions
+// Download subset of fastq files for specific number of accessions

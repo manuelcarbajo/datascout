@@ -7,6 +7,11 @@
     "items": {
         "type": "object",
         "properties": {
+            "sample_id":{
+                "type": "string",
+                "description": "unique sample identifier",
+                "meta": ["id"]
+            },
             "genome": {
                 "type": "string",
                 "description": "GCA accession for submitted genome"
