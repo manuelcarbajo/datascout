@@ -19,10 +19,9 @@ process NCBI_ORTHODB {
 
     script:
     """
-    echo begining orthodb MODULE
-    target_dir=\$(readlink orthodb_dir)
+    echo "Beginning orthodb MODULE"
+    target_dir=\$(readlink -f ${orthodb_folder} || echo ${orthodb_folder})
     mkdir -p "\$target_dir"
     ncbi_ortho_DBdata.py ${csv_file} ${ncbi_db_conf} ${projectDir} ${orthodb_folder}
     """
-
 }
