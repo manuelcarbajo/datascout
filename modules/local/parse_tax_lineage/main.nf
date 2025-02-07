@@ -3,7 +3,7 @@ process TAX_LINEAGE {
     container 'quay.io/biocontainers/ete3:3.1.2'
         
     publishDir "${params.output}", mode: 'copy', pattern: "*tax_ranks.tsv"
-    label 'assign'
+    label "process_medium"
 
     input:
       tuple val(meta), val(taxid)
