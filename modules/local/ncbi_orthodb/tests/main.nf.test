@@ -25,9 +25,8 @@ nextflow_process {
 
         then {
             assertAll(
-                { assert process.success }
-                //,
-                //{ assert path(process.out.genomes).text.contains(" 'level_1_tax': 5782") }
+                { assert process.success },
+                { assert path(process.out.genomes).text.contains(" 'level_1_tax': 5782") }
             )
         }
     }
@@ -46,7 +45,6 @@ nextflow_process {
                 """
             }
         }
-
         then {
             assertAll(
                 { assert process.success }
