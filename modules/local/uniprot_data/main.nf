@@ -1,20 +1,32 @@
-#!/usr/bin/env nextflow
 process UNIPROT_DATA {
 
-    container 'oras://community.wave.seqera.io/library/samtools_pymysql_requests:97922c3500673735'
+    conda "${moduleDir}/biopython_requests.yml"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/d2/d2cc550ff67f8541d44dc2db1b5d2d2e1cfccfe8536222b49788deefde7460f0/data' :
+        'community.wave.seqera.io/library/python_pip_biopython_requests:725bda83fb97ec48' }"
+        
     debug true
-    storeDir "${params.uniprot_dir}"
-    errorStrategy  'retry'
+    publishDir "${params.output}", mode: "copy"
+    label "process_low"
+
+    tag "${meta}"
+
+    errorStrategy 'retry'
     maxRetries 2
 
     input:
-    tuple val(genome), path(tax_ranks)
+      tuple val(meta), file(tax_ranks)
+      tuple val(meta), val(rank)
+      tuple val(meta), val(evidence)
 
     output:
-    tuple val(genome), path ("${genome}/*_uniprot_proteins.fa"), path("${genome}/*_uniprot_proteins.fa.fai"), emit: uniprot_data
+      tuple val(meta), path("${meta.id}_uniprot_dir"), emit: uniprot_results
 
     script:
     """
-    uniprot_data.py ${genome} ${tax_ranks} ${projectDir}
+    mkdir -p ${meta.id}_uniprot_dir
+    uniprot_data.py --tax_file ${tax_ranks} --output "${meta.id}_uniprot_dir" --rank ${rank} --evidence ${evidence}
     """
 }
+
+// Get proteins from uniprot and reformat headers

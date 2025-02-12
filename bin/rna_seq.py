@@ -1,66 +1,79 @@
 #!/usr/bin/env python3
 
-import sys
-import ast
-import requests
+import query_ena_transcriptome
+import logging
+import argparse
 import csv
-import os
-import subprocess
-from datetime import datetime
-import my_process as mp
-import csv_ENA_download
 
-def generate_ena_csv(tax_ranks,genome ,baseDir):
+logging.basicConfig(level=logging.INFO)
+
+#check which descriptor is used - sample name in this case
+#check if filtering of descripions for RNAs is needed
+
+def parse_taxa(taxa_file):
+    logging.info("Parsing taxa lineages from file")
+    tax_dict = {}
+    with open(taxa_file, 'r') as taxa:
+        for line in taxa:
+            data = line.rstrip().split('\t')
+            #   rank: taxid
+            tax_dict[data[1]] = data[2]
+    return tax_dict
+
+def find_transcriptome_data(tax_ranks, preferred_rank = False):
+    """use preferred rank if given by user. Circle through taxa until transcriptome data is found"""
+    if preferred_rank:
+        taxid = tax_ranks[preferred_rank]
+        ena = query_ena_transcriptome.EnaMetadata(taxid)
+        if len(transciptome_metadata):
+            transciptome_metadata = ena.query_ena()
+            return transciptome_metadata
+        else:
+            logging.info(f"No transcriptome data found at the preferred rank {preferred_rank}")
+            return None
+
     data_found = False
-    for l in range(0,4):
-        current_name = "level_" + str(l) + "_name"
-        current_tax = "level_" + str(l) + "_tax"
-        current_hierarchy = "level_" + str(l) + "_hierarchy"
-        user_prefered_tax = False
-        #TO DO - review filtering conditions, otherwise ranks_dict["species"] is just enough.
-        if tax_ranks[current_hierarchy] <= mp.ranks_dict["species"] and not data_found:
-            g_name = tax_ranks[current_name]
-
-            try:
-                genome_tax = tax_ranks["rna_acc"]
-                user_prefered_tax = True
-            except:
-                genome_tax = tax_ranks[current_tax]
-
-            output_rna_csv_path = genome + "_" + str(genome_tax) + "_ENA_rna.csv"
-            log_dir = os.path.join(baseDir, 'logs', genome)
-            log_file_path = log_dir + '/rna_script.log'
-
-            with open(log_file_path, 'w') as log_file:
-                try:
-                    log_file.write(" ** Querying ENA for RNA data for " + g_name + " taxonomy " + str(genome_tax) + "\n" )
-                    result_str = csv_ENA_download.main(genome_tax, output_rna_csv_path)
-                    if os.path.isfile(output_rna_csv_path):
-                        with open(output_rna_csv_path, 'r') as f:
-                            line_count = sum(1 for line in f)
-                            if line_count > 1:
-                                data_found = True
-                            else:
-                                os.remove(output_rna_csv_path)
-                    log_file.write(str(result_str))
-                    log_file.write(str(result_str))
-                except Exception as e:
-                    print("generate_ena_csv error for level " + str(l) + " executing command "+ str(e) +" ")
-        elif data_found:
-            break
-        if user_prefered_tax:
-            break
+    for rank, taxid in tax_ranks.items():
+        while not data_found:
+            ena = query_ena_transcriptome.EnaMetadata(taxid)
+            transciptome_metadata = ena.query_ena()
+            if len(transciptome_metadata):
+                data_found = True
+                return transciptome_metadata
+            
+    logging.info(f"No transcriptome data found at any taxonomic rank")
+    return None
 
 if __name__ == "__main__":
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    if len(sys.argv) < 3:
-        print("The genome, its path or the baseDir is/are missing as an argument.")
+    parser = argparse.ArgumentParser(description="Fetch data from orthodb")
+    parser.add_argument(
+        "-t", "--tax_file", type=str, help="File with taxonomic lineage information", required=True
+    )
+    parser.add_argument(
+        "-o", "--output_file", type=str, help="output file name", required=True
+    )
+    parser.add_argument(
+        "-r", "--rank", type=str, help="Preferred taxonomic rank to search for transcriptomic data", required=False
+    )
+    args = parser.parse_args()
+
+    if args.rank == "default":
+        rank = None
     else:
-        genome_name = sys.argv[1]
-        tax_ranks = sys.argv[2]
-        baseDir = sys.argv[3]
-        tr = mp.read_tax_rank(tax_ranks)
-        print("*** begin RNA-seq  genome_name: " + genome_name + " - " + str(now) )
-        generate_ena_csv(tr, genome_name, baseDir)
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    print("*** end RNA-seq  genome_name: " + genome_name + " - " + str(now) )
+        rank = args.rank
+        
+    taxa_dict = parse_taxa(args.tax_file)
+    transcriptome_metadata = find_transcriptome_data(taxa_dict, rank)
+
+    logging.info(f"Writing metadata to output file {args.output_file}")
+    with open(args.output_file, mode='w', newline='') as outfile:
+        if not transcriptome_metadata:
+            outfile.write("None")
+        else:
+            headers = transcriptome_metadata[0].keys()
+            writer = csv.DictWriter(outfile, fieldnames=headers)
+            writer.writeheader()
+            for sample in transcriptome_metadata:
+                writer.writerow(sample)
+
+

@@ -1,0 +1,58 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/manuelcarbajo/datascout/master/assets/schema_input.json", 
+    "title": "datascout - params.input schema",
+    "description": "Schema for the file provided with params.input",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "sample_id":{
+                "type": "string",
+                "description": "unique sample identifier",
+                "meta": ["id"]
+            },
+            "genome": {
+                "type": "string",
+                "description": "GCA accession for submitted genome",
+                "meta" : ["genome_id"]
+            },
+            "species_name": {
+                "type": "string",
+                "description": "Genome taxonomy"
+            },
+            "taxid": {
+                "type": "integer",
+                "description": "Genome taxid NCBI"
+            },
+            "orthodb": {
+                "type": "string",
+                "description": "Maximum tax level for orthodb",
+                "default": "default"
+            },
+            "uniprot": {
+                "type": "string",
+                "description": "Preferred tax level for uniprot",
+                "default": "default"
+            },
+            "rfam": {
+                "type": "string",
+                "errorMessage": "Preferred tax level for Rfam",
+                "default": "default"
+            },
+            "ena":{
+                "type": "string",
+                "errorMessage": "Preferred tax level for ENA transcriptomes",
+                "default": "default",
+                "meta" : ["ena_tax"]
+            },
+            "uniprot_evidence": {
+                "type": "integer",
+                "description": "Preferred uniprot evidence level",
+                "default": 2
+            }
+            
+        },
+        "required": ["genome","species_name", "taxid"]
+    }
+}

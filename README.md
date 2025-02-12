@@ -4,6 +4,7 @@ The different types of data are:
   - OrthoDB and UniProt orthology data;
   - Rfam (non coding Rna data);
   - Transcriptomic data from ENA
+  - Genome sequence file from ENA
 
 
 ### Getting this repo
@@ -56,4 +57,9 @@ export UNIPROT_DIR="/path/to/your/static-storage-dir/uniprot_dir"
 To run the pipeline execute:
 ```
 nextflow run main.nf --csv_file $INPUT_CSV --outdir $OUTPUT_PATH --orthodb_dir $ORTHODB_FOLDER --assemblies_dir $ASSEMBLIES_DIR --rna_fastq_dir $FASTQ_DIR --uniprot_dir $UNIPROT_DIR  --ena_csv_dir $ENA_CSV_DIR -profile slurm
+```
+
+### UPDATED - Initialising and running the environment
+```
+nextflow run main.nf --samplesheet {SAMPLESHEET} --output {OUTPUTDIR} --max_runs {MAX NO TRANSCRIPTOME RUNS TO DOWNLOAD}
 ```
