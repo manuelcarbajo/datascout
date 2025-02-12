@@ -10,20 +10,21 @@ process ENA_RNA_CSV {
     publishDir "${params.output}", mode: "copy"
     label 'process_medium'
 
+    tag "${meta}"
+
     errorStrategy 'retry'
     maxRetries 2
     
     input:
       tuple val(meta), file(tax_ranks)
-      tuple val(meta), val(rank)
 
     output:
-    tuple val(meta), path("${meta.id}_ENA_filtered_rna.csv"), emit: rna_csv
+    tuple val(meta), path("${meta.genome_id}_ENA_filtered_rna.csv"), emit: rna_csv
 
     script:
-    prefix = meta.id
+    prefix = meta.genome_id
     """
-    rna_seq.py --tax_file ${tax_ranks} --output_file "${prefix}_ENA_filtered_rna.csv" --rank ${rank}
+    rna_seq.py --tax_file ${tax_ranks} --output_file "${prefix}_ENA_filtered_rna.csv" --rank ${meta.ena_tax}
     """
 }
 

@@ -26,7 +26,7 @@ def transform_ftp_to_s3(ftp_path):
         )
 
 
-def download_file_from_fire(s3_key, outdir):
+def download_file_from_fire(s3_key):
     """
     Downloads an individual file from FIRE S3 using its object key.
     """
@@ -35,7 +35,7 @@ def download_file_from_fire(s3_key, outdir):
     s3_args.update({"config": Config(signature_version=UNSIGNED)})
 
     s3 = boto3.client("s3", **s3_args)
-    local_file_path = os.path.join(outdir, os.path.basename(s3_key))
+    local_file_path = os.path.basename(s3_key)
 
     try:
         logging.info(f"Downloading {s3_key} from S3 bucket {PUBLIC_BUCKET} to {local_file_path}...")

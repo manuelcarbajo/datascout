@@ -9,6 +9,8 @@ process NCBI_ORTHODB {
     publishDir "${params.output}", mode: "copy"
     label "process_medium"
 
+    tag "${meta}"
+
     errorStrategy 'retry'
     maxRetries 2
 

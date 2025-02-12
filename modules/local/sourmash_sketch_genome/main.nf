@@ -5,6 +5,8 @@ process SOURMASH_SKETCH_GENOME {
     debug true
     label "process_high"
 
+    tag "${meta}"
+
     errorStrategy  'retry'
     maxRetries 2
 

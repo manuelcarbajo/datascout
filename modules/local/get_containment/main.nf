@@ -10,6 +10,8 @@ process GET_CONTAINMENT {
     debug true
     label "process_low"
 
+    tag "${meta}"
+
     errorStrategy  'retry'
     maxRetries 2
 
@@ -17,7 +19,6 @@ process GET_CONTAINMENT {
       tuple val(meta), path(sourmash_file)
 
     output:
-      val containment
       tuple val(meta), path("runs.txt"), emit: keep_runs
 
 

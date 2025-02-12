@@ -8,6 +8,8 @@ process RFAM_ACCESSIONS {
     publishDir "${params.output}", mode: "copy"
     label "process_low"
 
+    tag "${meta}"
+
     errorStrategy 'retry'
     maxRetries 2
 

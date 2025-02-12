@@ -9,6 +9,8 @@ process DOWNLOAD_FASTQ_FILES {
     debug true
     label 'process_high'
 
+    tag "${meta}"
+
     errorStrategy 'retry'
     maxRetries 2
 
@@ -18,12 +20,10 @@ process DOWNLOAD_FASTQ_FILES {
       val(num_lines)
 
     output:
-      tuple val(meta), path("${meta.genome_id}_${meta.ena_tax}_rna_fastq_dir/*"), emit: fastq_files
+      tuple val(meta), path("*fastq"), emit: fastq_files
 
     script:
     """
-    download_rnaseq_fastqs.py --startline ${start_line} --transcriptomes ${ena_metadata} --output-dir "${meta.genome_id}_${meta.ena_tax}_rna_fastq_dir/*" --numlines ${num_lines}
+    download_rnaseq_fastqs.py --startline ${start_line} --transcriptomes ${ena_metadata} --numlines ${num_lines}
     """
 }
-
-// Download subset of fastq files for specific number of accessions

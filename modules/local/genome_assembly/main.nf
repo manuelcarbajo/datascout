@@ -9,18 +9,20 @@ process GENOME_ASSEMBLY {
     publishDir "${params.output}", mode: "copy"
     label "process_medium"
 
+    tag "${meta}"
+
     errorStrategy  'retry'
     maxRetries 2
 
     input:
-    tuple val(meta), val(genome_accession)
+    val(meta)
 
     output:
     tuple val(meta), path ("*_reheaded_assembly.fasta"), emit: assembly_fa
 
     script:
     """
-    genome_assembly.py ${genome_accession}
+    genome_assembly.py ${meta.id}
     """
 }
 

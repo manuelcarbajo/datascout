@@ -7,9 +7,6 @@ import csv
 
 logging.basicConfig(level=logging.INFO)
 
-#check if we need to include thse after sourmash
-#MAX_NB_SAME_DESCRIPTORS = 6
-#MAX_NB_TOTAL_FILES = 3
 #check which descriptor is used - sample name in this case
 #check if filtering of descripions for RNAs is needed
 

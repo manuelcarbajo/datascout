@@ -14,7 +14,8 @@
             },
             "genome": {
                 "type": "string",
-                "description": "GCA accession for submitted genome"
+                "description": "GCA accession for submitted genome",
+                "meta" : ["genome_id"]
             },
             "species_name": {
                 "type": "string",
@@ -42,7 +43,8 @@
             "ena":{
                 "type": "string",
                 "errorMessage": "Preferred tax level for ENA transcriptomes",
-                "default": "default"
+                "default": "default",
+                "meta" : ["ena_tax"]
             },
             "uniprot_evidence": {
                 "type": "integer",

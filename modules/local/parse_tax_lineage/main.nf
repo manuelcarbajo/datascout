@@ -5,9 +5,10 @@ process TAX_LINEAGE {
     publishDir "${params.output}", mode: 'copy', pattern: "*tax_ranks.tsv"
     label "process_medium"
 
+    tag "${meta}"
+
     input:
       tuple val(meta), val(taxid)
-      val(db_path)
       val(taxdump)
     
     output:
@@ -16,7 +17,7 @@ process TAX_LINEAGE {
     script:
     prefix = meta.id
     """
-    parse_tax_lineage.py --taxid ${taxid} --output ${prefix}_tax_ranks.tsv --db_path "${db_path}", --taxdump "${taxdump}"
+    parse_tax_lineage.py --taxid ${taxid} --output ${prefix}_tax_ranks.tsv --taxdump "${taxdump}"
     """
 }
 

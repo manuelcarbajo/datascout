@@ -19,33 +19,34 @@ workflow SOURMASH {
 
     DOWNLOAD_FASTQ_FILES(ena_metadata, start_line, num_lines)
 
-    // make paired end file channel with run id in meta
+    
     fastq_files_ch = DOWNLOAD_FASTQ_FILES.out.fastq_files
 
+    //make paired end file channel with run id in meta
     fastq_files_ch.flatMap { meta, fastqs -> 
         filePairs = fastqs.collect { file(it) }
-            .groupBy { file -> file.baseName.replaceFirst(/_[12]$/, '') }
+            .groupBy { file -> file.name.split('_')[0] }
             .collect { run_id, files ->
                 def forward = files.find { it.name.endsWith('_1.fastq') }
                 def reverse = files.find { it.name.endsWith('_2.fastq') }
                 def new_meta = meta + [run_id: run_id]
                 return tuple(new_meta, forward, reverse)
             }
-        return filePairs
     }
     .set { paired_fastq_files }
+
 
     SOURMASH_SKETCH_FASTQ(paired_fastq_files)
     SOURMASH_SKETCH_GENOME(genome)
 
-
+    // output list of signatures per input genome and ena lineage
     signatures_ch = SOURMASH_SKETCH_FASTQ.out.sketch
         .map { meta, sketch -> 
-            def new_meta = [id: meta.id] 
+            def new_meta = [id: meta.id, ena_tax: meta.ena_tax] // remove run ID
             tuple(new_meta, sketch)
         }
-        .groupTuple() // output list of signatures per input genome
-
+        .groupTuple() 
+        
     SOURMASH_GATHER(
         SOURMASH_SKETCH_GENOME.out.sketch,
         signatures_ch
@@ -55,31 +56,34 @@ workflow SOURMASH {
         SOURMASH_GATHER.out.gather_csv
     )
 
-    // read run ids from file into a list
     keep_runs_ch = GET_CONTAINMENT.out.keep_runs
+
+    // read run ids from file into a list
     keep_runs_list_ch = keep_runs_ch
         .map { run_data -> 
             def meta = run_data[0]
             def runs = run_data[1]  // txt file
             def run_ids = runs.readLines().collect { it.trim() }.toList()  // store as list
             return [meta, run_ids] 
+    }
+
+    // get run files which include run id
+    filtered_fastq_ch = fastq_files_ch.join(keep_runs_list_ch)
+    .map { meta, fastq_files, runs ->  
+
+        def filtered_files = fastq_files.findAll { fq_path -> 
+            def base_name = fq_path.getFileName().toString().split('_')[0]
+            
+            runs.any { id -> base_name == id } 
         }
 
-    // filter runs which are contained within the genome
-    filtered_fastq_ch = fastq_files_ch.combine(keep_runs_list_ch)
-        .filter { fastq, runs ->
-            def new_meta = fastq[0]
-            def run_ids = runs[1]  // list of run IDs
-            def fastq_files = fastq[1] // list of fastq file paths
-            def filtered = fastq_files.findAll { fq_path -> run_ids.any { id -> fq_path.contains(id)}} // keep any files which have a run ID from the list in the path
-            return [new_meta, filtered]
-        }
-    
+        return tuple(meta, filtered_files)
+    }
+
     PUBLISH_RUNS(filtered_fastq_ch)
 
     emit:
     sourmash        = SOURMASH_GATHER.out.gather_csv
     fastq_files     = PUBLISH_RUNS.out.fastq_files
-
 
 }
