@@ -17,9 +17,10 @@ def generate_ena_csv(tax_ranks,genome ,baseDir):
         current_tax = "level_" + str(l) + "_tax"
         current_hierarchy = "level_" + str(l) + "_hierarchy"
         user_prefered_tax = False
+        
         #TO DO - review filtering conditions, otherwise ranks_dict["species"] is just enough.
         #if we haven't found transcriptomic data at species level, don't go further and return null.
-        if tax_ranks[current_hierarchy] < mp.ranks_dict["species"] and not data_found:
+        if tax_ranks[current_hierarchy] >= mp.ranks_dict["species"] and not data_found:
             g_name = tax_ranks[current_name]
 
             try:
@@ -31,7 +32,6 @@ def generate_ena_csv(tax_ranks,genome ,baseDir):
             output_rna_csv_path = genome + "_" + str(genome_tax) + "_ENA_rna.csv"
             log_dir = os.path.join(baseDir, 'logs', genome)
             log_file_path = log_dir + '/rna_script.log'
-
             with open(log_file_path, 'w') as log_file:
                 try:
                     log_file.write(" ** Querying ENA for RNA data for " + g_name + " taxonomy " + str(genome_tax) + "\n" )
