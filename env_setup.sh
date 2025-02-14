@@ -1,10 +1,11 @@
 
-srun --pty -n 10 -t 14-00:00  --mem=10G  $SHELL
+#srun --pty -n 10 -t 14-00:00  --mem=10G  $SHELL
 
 [ -n "$SLURM_JOB_ID" ] && echo "You are inside an interactive SLURM shell with job ID: $SLURM_JOB_ID" || echo "You are not inside an interactive SLURM shell"
 
 
-module load nextflow/23.04.1
+
+#module load nextflow/24.04.3
 
 
 export PROJECTDIR="/<path/to/project>/Ensembl-datascout"

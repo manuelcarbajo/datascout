@@ -303,58 +303,67 @@ def get_orthoDB_data(species_dict,baseDir):
 def query_orthoDB_and_combine(ncbi_id,orthodb_ncbi_subfolder, species_dict,gca,log):
     data_found = False
     try:
-        url = "https://data.orthodb.org/current/search?universal=0.9&singlecopy=0.9&level=" + str(ncbi_id) + "&species=" + str(ncbi_id) + "&take=5000"
-        log.write("main url: " + url + " \n")
-        response = requests.get(url)
-        if response.status_code == 200:
-            out = response.json()
-            data_count = int(out["count"])
-            MAX_NB_QUERIES_PER_BLOCK = 200
-            if out and data_count > 0:
-                log.write("++ Response success with data_count = " + str(data_count) + "\n")
-                out_data  = out["data"]
-                orig_clusters_comb = os.path.join(orthodb_ncbi_subfolder, "Combined_OrthoDB.orig.fa")
+        urls = ["https://data.orthodb.org/current/search?universal=0.9&singlecopy=0.9&level=" + str(ncbi_id) + "&species=" + str(ncbi_id) + "&take=5000",
+                "https://data.orthodb.org/current/search?universal=0.8&singlecopy=0.8&level=" + str(ncbi_id) + "&species=" + str(ncbi_id) + "&take=5000",
+                "https://data.orthodb.org/current/search?universal=0.8&level=" + str(ncbi_id) + "&take=5000"]
+        # To maximise chances of getting a response, try a conservative query and relax parameters if data is not initially found
+        for url in urls:            
 
-                start = 0
-                end = MAX_NB_QUERIES_PER_BLOCK
-                remains = data_count
+            if data_found:
+                return data_found
 
-                # Chop the data in small blocks and query them with a wait intervall to avoid spaming orthoDB
-                while remains > 0:
-                    groups = out_data[start:end]
-                    start = end
-                    end = end + MAX_NB_QUERIES_PER_BLOCK
-                    remains -= MAX_NB_QUERIES_PER_BLOCK
-                    if remains < 0:
-                        end = data_count
+            log.write("trying main url: " + url + " \n")
+            response = requests.get(url)
+            
+            if response.status_code == 200:
+                out = response.json()
+                data_count = int(out["count"])
+                MAX_NB_QUERIES_PER_BLOCK = 200
+                if out and data_count > 0:
+                    log.write("++ Response success with data_count = " + str(data_count) + "\n")
+                    out_data  = out["data"]
+                    orig_clusters_comb = os.path.join(orthodb_ncbi_subfolder, "Combined_OrthoDB.orig.fa")
 
-                    parallize_jobs(groups, orthodb_ncbi_subfolder) # parallize the fasta download.
+                    start = 0
+                    end = MAX_NB_QUERIES_PER_BLOCK
+                    remains = data_count
 
-                    for data in groups:
-                        outf = "%s.fa"%(data)
-                        outfname = os.path.join(orthodb_ncbi_subfolder,outf)
-                        # Append the contents of the downloaded cluster to the combined file
-                        with open(outfname, 'r') as single_cluster_file, open(orig_clusters_comb, 'a') as combined_clusters_file:
-                            combined_clusters_file.write(single_cluster_file.read())
-                        #remove the single cluster
-                        os.remove(outfname)
-                    time.sleep(1)
+                    # Chop the data in small blocks and query them with a wait intervall to avoid spaming orthoDB
+                    while remains > 0:
+                        groups = out_data[start:end]
+                        start = end
+                        end = end + MAX_NB_QUERIES_PER_BLOCK
+                        remains -= MAX_NB_QUERIES_PER_BLOCK
+                        if remains < 0:
+                            end = data_count
 
-                logger_string = create_combined_fa(ncbi_id,orthodb_ncbi_subfolder,orig_clusters_comb)
-                log.write(logger_string)
-                combined_fa_file = f"{orthodb_ncbi_subfolder}/Combined_OrthoDB_{ncbi_id}_final.out.fa"
-                combined_fai_file = f"{orthodb_ncbi_subfolder}/Combined_OrthoDB_{ncbi_id}_final.out.fa.fai"
-                if os.path.exists(combined_fa_file) and os.path.exists(combined_fai_file):
-                    species_dict[gca]['orthoDB_acc'] = ncbi_id
-                    data_found = True
-                    log.write(" +++ Found combined .fa files for " + str(ncbi_id) + "\n")
+                        parallize_jobs(groups, orthodb_ncbi_subfolder) # parallize the fasta download.
 
+                        for data in groups:
+                            outf = "%s.fa"%(data)
+                            outfname = os.path.join(orthodb_ncbi_subfolder,outf)
+                            # Append the contents of the downloaded cluster to the combined file
+                            with open(outfname, 'r') as single_cluster_file, open(orig_clusters_comb, 'a') as combined_clusters_file:
+                                combined_clusters_file.write(single_cluster_file.read())
+                            #remove the single cluster
+                            os.remove(outfname)
+                        time.sleep(1)
+
+                    logger_string = create_combined_fa(ncbi_id,orthodb_ncbi_subfolder,orig_clusters_comb)
+                    log.write(logger_string)
+                    combined_fa_file = f"{orthodb_ncbi_subfolder}/Combined_OrthoDB_{ncbi_id}_final.out.fa"
+                    combined_fai_file = f"{orthodb_ncbi_subfolder}/Combined_OrthoDB_{ncbi_id}_final.out.fa.fai"
+                    if os.path.exists(combined_fa_file) and os.path.exists(combined_fai_file):
+                        species_dict[gca]['orthoDB_acc'] = ncbi_id
+                        data_found = True
+                        log.write(" +++ Found combined .fa files for " + str(ncbi_id) + "\n")
+
+                else:
+                    log.write("--- No subs for " + str(ncbi_id) + "\n")
+                    print("--- No subs for " + str(ncbi_id) + "\n")
             else:
-                log.write("--- No subs for " + str(ncbi_id) + "\n")
-                print("--- No subs for " + str(ncbi_id) + "\n")
-        else:
-            log.write("Response error:  " + str(response) + " \n" )
-            print("Response error:  " + str(response) + " \n" )
+                log.write("Response error:  " + str(response) + " \n" )
+                print("Response error:  " + str(response) + " \n" )
     except Exception as err:
         log.write("Error querying orthodb\n" + str(err))
         print("Error querying orthodb\n" + str(err))
