@@ -8,10 +8,7 @@
                         "genome_id": "GCA_003719455.1",
                         "ena_tax": "default"
                     },
-                    [
-                        "5693_uniprot_proteins.faa:md5,c3e392c8fb6d6bceb0a063e4f3d88205",
-                        "5693_uniprot_raw.faa:md5,77f5a850c7f9c108cc5a5e9562b17667"
-                    ]
+                    []
                 ]
             ],
             {
@@ -36,10 +33,7 @@
                         "genome_id": "GCA_003719455.1",
                         "ena_tax": "default"
                     },
-                    [
-                        "5693_uniprot_proteins.faa:md5,f2c05ee22ed44547d8403629c6f8c462",
-                        "5693_uniprot_raw.faa:md5,8d194efff890c4fd722aef97487198a9"
-                    ]
+                    []
                 ]
             ],
             {

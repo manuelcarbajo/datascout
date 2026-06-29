@@ -1,3 +1,5 @@
 *_ENA_filtered_rna.csv
 pipeline_info/*
 test_sample1_rfam_dir/*
+*_uniprot_proteins.faa
+*_uniprot_raw.faa
