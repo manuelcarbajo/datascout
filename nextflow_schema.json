@@ -115,6 +115,13 @@
           "help_text": "When enabled, the pipeline will prioritize smaller fastq files when selecting transcriptome data from ENA. Useful for testing",
           "fa_icon": "fas fa-hashtag",
           "default": false
+        },
+        "skip_rfam": {
+          "type": "boolean",
+          "default": false,
+          "description": "Skip RFAM accessions retrieval",
+          "help_text": "When enabled, the pipeline will not query RFAM for RNA family accessions, making this step optional",
+          "fa_icon": "fas fa-forward"
         }
       }
     }

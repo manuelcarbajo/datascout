@@ -72,8 +72,10 @@ workflow DATASCOUT {
         UNIPROT_DATA(joined_uniprot, params.swissprot ?: false)
         ch_versions = ch_versions.mix(UNIPROT_DATA.out.versions.first())
 
-        RFAM_ACCESSIONS(joined_rfam, params.rfam_db)
-        ch_versions = ch_versions.mix(RFAM_ACCESSIONS.out.versions.first())
+        if ( !params.skip_rfam ) {
+            RFAM_ACCESSIONS(joined_rfam, params.rfam_db)
+            ch_versions = ch_versions.mix(RFAM_ACCESSIONS.out.versions.first())
+        }
 
         // modify meta
         input.genome_file
