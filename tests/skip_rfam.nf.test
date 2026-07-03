@@ -36,6 +36,15 @@ nextflow_pipeline {
         }
 
         then {
+            def stable_name = getAllFilesFromDir(
+                params.outdir,
+                relative: true,
+                includeDir: true,
+                ignore: [
+                    'pipeline_info/*',
+                ]
+            )
+            def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
             assertAll(
                 { assert workflow.success },
                 { assert path("$outputDir").exists() },
@@ -56,7 +65,16 @@ nextflow_pipeline {
                 { assert path("$outputDir/test_sample1_uniprot_dir").list().any { it.fileName.toString().endsWith("_uniprot_raw.faa") } },
 
                 // RFAM directory must not be produced when skip_rfam is enabled
-                { assert !path("$outputDir/test_sample1_rfam_dir").exists() }
+                { assert !path("$outputDir/test_sample1_rfam_dir").exists() },
+
+                { assert snapshot(
+                    // Number of tasks
+                    workflow.trace.succeeded().size(),
+                    // All stable path name
+                    stable_name,
+                    // All files with stable contents
+                    stable_path,
+                ).match() }
             )
         }
     }
