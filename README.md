@@ -98,7 +98,7 @@ DATABASE OPTIONS:
 PROCESSING OPTIONS:
   --max_runs <int>        Maximum number of runs to process.
                           [default: 100, min: 1, max: 10000]
-  --download-rna-fastq    Enable transcriptomic FASTQ download and publishing.
+  --download_rna_fastq    Enable transcriptomic FASTQ download and publishing.
                           Used only when --sourmash is false. Ignored when
                           --sourmash is true. [default: true]
   --max_orthodb_clusters <int> Maximum number of clusters to download from orthodb.

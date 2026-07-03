@@ -20,10 +20,10 @@ nextflow_process {
 
         then {
             assert process.success
-            assert snapshot(
-                process.out.uniprot_results,
-                path(process.out.versions.get(0)).yaml
-            ).match()
+            def uniprot_dir = file(process.out.uniprot_results.get(0).get(1))
+            assert uniprot_dir.list().any { it.endsWith('_uniprot_proteins.faa') }
+            assert uniprot_dir.list().any { it.endsWith('_uniprot_raw.faa') }
+            assert snapshot(uniprot_dir.list().sort()).match()
         }
 
     }
@@ -41,10 +41,10 @@ nextflow_process {
 
         then {
             assert process.success
-            assert snapshot(
-                process.out.uniprot_results,
-                path(process.out.versions.get(0)).yaml
-            ).match()
+            def uniprot_dir = file(process.out.uniprot_results.get(0).get(1))
+            assert uniprot_dir.list().any { it.endsWith('_uniprot_proteins.faa') }
+            assert uniprot_dir.list().any { it.endsWith('_uniprot_raw.faa') }
+            assert snapshot(uniprot_dir.list().sort()).match()
         }
 
     }

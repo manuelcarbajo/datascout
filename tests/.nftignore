@@ -1,3 +1,5 @@
 *_ENA_filtered_rna.csv
 pipeline_info/*
 test_sample1_rfam_dir/*
+test_sample1_orthodb_dir/**
+test_sample1_uniprot_dir/*

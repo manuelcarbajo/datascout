@@ -113,7 +113,7 @@ workflow DATASCOUT {
 
         if ( params.sourmash ) {
             if ( !params.download_rna_fastq ) {
-                log.info 'Ignoring --download-rna-fastq because --sourmash is true.'
+                log.info 'Ignoring --download_rna_fastq because --sourmash is true.'
             }
 
             SOURMASH(
