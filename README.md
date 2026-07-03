@@ -4,7 +4,6 @@
 
 The pipeline allows for bespoke requests such as specificity of taxonomic rank queried, evidence levels and volume of outputs.
 
-The steps of the pipeline are outlined in the [documentation](docs/README.md).
 
 > [!NOTE]
 > This pipeline uses the [nf-core](https://nf-co.re) template with some tweaks, but it's not part of nf-core.
