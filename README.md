@@ -4,7 +4,6 @@
 
 The pipeline allows for bespoke requests such as specificity of taxonomic rank queried, evidence levels and volume of outputs.
 
-The steps of the pipeline are outlined in the [documentation](docs/README.md).
 
 > [!NOTE]
 > This pipeline uses the [nf-core](https://nf-co.re) template with some tweaks, but it's not part of nf-core.
@@ -42,12 +41,14 @@ Evidence level 3 = Protein inferred from homology OR above
 
 Results are filtered for swissprot only entries if the the input flag is used.
 
-## Step 4. Rfam
+## Step 4 (optional). Rfam
 
 Query Rfam for models matching the most specific possible taxid OR the given rank in the samplesheet.
 Outputs a list of Rfams.
 
 This step uses the [credentials](assets/rfam_db.conf) for the public Rfam database
+
+This step can be disabled with `--skip_rfam`, in which case no Rfam query is performed and no `rfam_dir` output is produced.
 
 ## Step 5. ENA and transcriptomes
 
@@ -110,6 +111,9 @@ PROCESSING OPTIONS:
                           direct FASTQ download. [default: false]
   --swissprot             Use SwissProt database only.
                           Restricts UniProt searches to manually curated entries. [default: false]
+  --skip_rfam             Skip the Rfam accessions retrieval step.
+                          When enabled, the pipeline will not query Rfam and no
+                          rfam_dir output is produced. [default: false]
 ```
 
 # Samplesheet
