@@ -111,10 +111,10 @@ PROCESSING OPTIONS:
                           direct FASTQ download. [default: false]
   --swissprot             Use SwissProt database only.
                           Restricts UniProt searches to manually curated entries. [default: false]
-  --min_proteins <int>    Minimum number of UniProt proteins required to keep a genome.
-                          Samples below the threshold have no uniprot_dir published and
-                          are listed in low_protein_genomes.csv.
-                          [default: 0 (filter disabled)]
+  --min_proteins <int>    Minimum number of OrthoDB proteins required to keep a genome,
+                          counted in combined_orthodb_<taxid>.faa. Samples below the
+                          threshold have no orthodb_dir published and are listed in
+                          low_protein_genomes.csv. [default: 0 (filter disabled)]
   --skip_rfam             Skip the Rfam accessions retrieval step.
                           When enabled, the pipeline will not query Rfam and no
                           rfam_dir output is produced. [default: false]

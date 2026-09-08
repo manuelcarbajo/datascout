@@ -66,14 +66,14 @@ workflow DATASCOUT {
         taxa_ch.join(input.rfam_tax).set { joined_rfam }
 
         // query databases for supporting proteins and rnas
-        NCBI_ORTHODB(joined_orthodb, params.max_orthodb_clusters)
+        NCBI_ORTHODB(joined_orthodb, params.max_orthodb_clusters, params.min_proteins ?: 0)
         ch_versions = ch_versions.mix(NCBI_ORTHODB.out.versions.first())
 
-        UNIPROT_DATA(joined_uniprot, params.swissprot ?: false, params.min_proteins ?: 0)
+        UNIPROT_DATA(joined_uniprot, params.swissprot ?: false)
         ch_versions = ch_versions.mix(UNIPROT_DATA.out.versions.first())
 
-        // trace of genomes dropped for having too few UniProt proteins
-        UNIPROT_DATA.out.low_proteins
+        // trace of genomes dropped for having too few OrthoDB proteins
+        NCBI_ORTHODB.out.low_proteins
             .collectFile(
                 name: 'low_protein_genomes.csv',
                 seed: 'sample_id,taxid,n_proteins,min_proteins\n',
