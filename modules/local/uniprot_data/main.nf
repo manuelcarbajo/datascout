@@ -12,9 +12,11 @@ process UNIPROT_DATA {
     input:
       tuple val(meta), path(tax_ranks), val(rank), val(evidence)
       val(swissprot)
+      val(min_proteins)
 
     output:
-      tuple val(meta), path("${meta.id}_uniprot_dir"), emit: uniprot_results
+      tuple val(meta), path("${meta.id}_uniprot_dir"), emit: uniprot_results, optional: true
+      path "${meta.id}_low_proteins.csv", emit: low_proteins, optional: true
       path "versions.yml", emit: versions
 
     script:
@@ -22,6 +24,14 @@ process UNIPROT_DATA {
     """
     mkdir -p ${meta.id}_uniprot_dir
     uniprot_data.py --tax_file ${tax_ranks} --output "${meta.id}_uniprot_dir" --rank ${rank} --evidence ${evidence} ${swissprot_arg}
+
+    faa=\$(ls ${meta.id}_uniprot_dir/*_uniprot_proteins.faa)
+    n_proteins=\$(grep -c '^>' "\${faa}" || true)
+    if [ "\${n_proteins}" -lt "${min_proteins}" ]; then
+        echo "Dropping ${meta.id}: \${n_proteins} UniProt proteins (minimum ${min_proteins})" >&2
+        echo "${meta.id},\$(basename "\${faa}" _uniprot_proteins.faa),\${n_proteins},${min_proteins}" > ${meta.id}_low_proteins.csv
+        rm -rf ${meta.id}_uniprot_dir
+    fi
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
