@@ -66,7 +66,7 @@ workflow DATASCOUT {
         taxa_ch.join(input.rfam_tax).set { joined_rfam }
 
         // query databases for supporting proteins and rnas
-        NCBI_ORTHODB(joined_orthodb, params.max_orthodb_clusters, params.min_proteins ?: 0)
+        NCBI_ORTHODB(joined_orthodb, params.max_orthodb_clusters, params.orthodb_min_proteins)
         ch_versions = ch_versions.mix(NCBI_ORTHODB.out.versions.first())
 
         UNIPROT_DATA(joined_uniprot, params.swissprot ?: false)
@@ -76,7 +76,7 @@ workflow DATASCOUT {
         NCBI_ORTHODB.out.low_proteins
             .collectFile(
                 name: 'low_protein_genomes.csv',
-                seed: 'sample_id,taxid,n_proteins,min_proteins\n',
+                seed: 'sample_id,taxid,n_proteins\n',
                 sort: true,
                 storeDir: "${params.outdir}"
             )

@@ -29,7 +29,7 @@ nextflow_process {
 
     }
 
-    test("Should drop the sample when min_proteins is not met") {
+    test("Should drop the sample when orthodb_min_proteins is not met") {
 
         when {
             process {
@@ -48,7 +48,7 @@ nextflow_process {
             // ..but the sample is traced with its protein count
             assert process.out.low_proteins.size() == 1
             def trace = file(process.out.low_proteins.get(0)).text.trim()
-            assert trace ==~ /test_sample1,\d+,\d+,100000000/
+            assert trace ==~ /test_sample1,\d+,\d+/
         }
 
     }

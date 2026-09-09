@@ -111,9 +111,9 @@ PROCESSING OPTIONS:
                           direct FASTQ download. [default: false]
   --swissprot             Use SwissProt database only.
                           Restricts UniProt searches to manually curated entries. [default: false]
-  --min_proteins <int>    Minimum number of OrthoDB proteins required to keep a genome,
-                          counted in combined_orthodb_<taxid>.faa. Samples below the
-                          threshold have no orthodb_dir published and are listed in
+  --orthodb_min_proteins <int> Minimum number of OrthoDB proteins required to keep a
+                          genome, counted in combined_orthodb_<taxid>.faa. Samples below
+                          the threshold produce no orthodb_dir and are listed in
                           low_protein_genomes.csv. [default: 0 (filter disabled)]
   --skip_rfam             Skip the Rfam accessions retrieval step.
                           When enabled, the pipeline will not query Rfam and no
@@ -169,7 +169,7 @@ Folder ending **uniprot_dir**: One per sample, and contains protein fasta files 
 
   - Contains raw and reformatted protein fasta files named by taxid
 
-File **low_protein_genomes.csv**: Only written when `--min_proteins` drops at least one sample. Columns: `sample_id,taxid,n_proteins,min_proteins`
+File **low_protein_genomes.csv**: Only written when `--orthodb_min_proteins` drops at least one sample. Columns: `sample_id,taxid,n_proteins`
 
 Folder **pipeline_info** : contains execution reports, and a software and database versions yaml file
 

@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### `Added`
 
-- `--min_proteins` parameter (default `0`) to drop genomes whose OrthoDB protein set, counted in `combined_orthodb_<taxid>.faa`, is too small. Dropped samples publish no `orthodb_dir` and are traced in `low_protein_genomes.csv`.
+- `--orthodb_min_proteins` parameter (default `0`) to drop genomes whose OrthoDB protein set, counted in `combined_orthodb_<taxid>.faa`, is too small. Dropped samples produce no `orthodb_dir` and are traced in `low_protein_genomes.csv`.
 
 ### `Fixed`
 
