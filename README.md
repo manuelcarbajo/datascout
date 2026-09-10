@@ -29,6 +29,8 @@ Uses the following filters:
 "universal": "0.9",
 "singlecopy": "0.9"
 
+An optional `orthodb_min_proteins` parameter can be used to force the pipeline to discard genomes with fewer than `orthodb_min_proteins` proteins. This is useful because downstream pipelines, such as the MGnify Genomes Catalogue Pipeline, cannot process genomes with insufficient gene evidence. This is because BRAKER, for example, runs AUGUSTUS, which crashes when the protein evidence file contains too little information to train the model used for predictions ([details in this issue](https://github.com/Gaius-Augustus/BRAKER/issues/8)).
+
 ## Step 3. UniProt
 
 Query UniProt for proteins matching the most specific possible taxid OR the given rank in the samplesheet.
