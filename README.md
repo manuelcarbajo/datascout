@@ -29,6 +29,8 @@ Uses the following filters:
 "universal": "0.9",
 "singlecopy": "0.9"
 
+An optional `orthodb_min_proteins` parameter can be used to force the pipeline to discard genomes with fewer than `orthodb_min_proteins` proteins. This is useful because downstream pipelines, such as the MGnify Genomes Catalogue Pipeline, cannot process genomes with insufficient gene evidence. This is because BRAKER, for example, runs AUGUSTUS, which crashes when the protein evidence file contains too little information to train the model used for predictions ([details in this issue](https://github.com/Gaius-Augustus/BRAKER/issues/8)).
+
 ## Step 3. UniProt
 
 Query UniProt for proteins matching the most specific possible taxid OR the given rank in the samplesheet.
@@ -111,6 +113,10 @@ PROCESSING OPTIONS:
                           direct FASTQ download. [default: false]
   --swissprot             Use SwissProt database only.
                           Restricts UniProt searches to manually curated entries. [default: false]
+  --orthodb_min_proteins <int> Minimum number of OrthoDB proteins required to keep a
+                          genome, counted in combined_orthodb_<taxid>.faa. Samples below
+                          the threshold produce no orthodb_dir and are listed in
+                          low_protein_genomes.csv. [default: 0 (filter disabled)]
   --skip_rfam             Skip the Rfam accessions retrieval step.
                           When enabled, the pipeline will not query Rfam and no
                           rfam_dir output is produced. [default: false]
@@ -164,6 +170,8 @@ Folder ending **rfam_dir**: One per sample, and contains rfam data
 Folder ending **uniprot_dir**: One per sample, and contains protein fasta files from UniProt
 
   - Contains raw and reformatted protein fasta files named by taxid
+
+File **low_protein_genomes.csv**: Only written when `--orthodb_min_proteins` drops at least one sample. Columns: `sample_id,taxid,n_proteins`
 
 Folder **pipeline_info** : contains execution reports, and a software and database versions yaml file
 

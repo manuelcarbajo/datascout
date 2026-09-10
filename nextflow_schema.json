@@ -116,6 +116,14 @@
           "fa_icon": "fas fa-hashtag",
           "default": false
         },
+        "orthodb_min_proteins": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Minimum number of OrthoDB proteins required to keep a genome",
+          "help_text": "Samples whose combined_orthodb_<taxid>.faa holds fewer proteins than this are dropped: no orthodb_dir is produced and a row is written to low_protein_genomes.csv. 0 disables the filter.",
+          "fa_icon": "fas fa-filter"
+        },
         "skip_rfam": {
           "type": "boolean",
           "default": false,

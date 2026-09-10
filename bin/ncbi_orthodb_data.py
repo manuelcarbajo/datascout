@@ -123,7 +123,7 @@ def query_orthodb(query_terms, search=False, download=False):
 
 def create_combined_fa(taxid, orthodb_ncbi_subfolder):
     """Combine orthodb clusters into single file per taxid. Retain unique orthoDB seqIDs. Keep only ID and
-    remove description in fasta headers"""
+    remove description in fasta headers. Return the number of proteins written"""
 
     ortho_ids = set()
     final_ortho_fasta = os.path.join(orthodb_ncbi_subfolder, f"combined_orthodb_{taxid}.faa")
@@ -139,6 +139,7 @@ def create_combined_fa(taxid, orthodb_ncbi_subfolder):
                         outfile.write(f"{str(entry.seq)}\n")
                         ortho_ids.add(entry.id)
                 os.remove(fasta_file)
+    return len(ortho_ids)
 
 
 def main():
@@ -155,6 +156,13 @@ def main():
     )
     parser.add_argument(
         "--max_clusters", type=int, default=None, help="Limit the number of clusters to fetch (mainly for testing)"
+    )
+    parser.add_argument(
+        "--min_proteins", type=int, default=0, help="""Minimum number of proteins required to keep the sample.
+        Below it no output directory is produced and the sample is traced in low_proteins.csv"""
+    )
+    parser.add_argument(
+        "--sample_id", type=str, default="", help="Sample identifier used when tracing a dropped sample"
     )
     parser.add_argument(
         "--version", action="store_true", help="Show orthodb version number and exit"
@@ -180,7 +188,8 @@ def main():
     taxa_dict = parse_taxa(args.tax_file)
     clusters = get_orthodb_data(taxa_dict, max_lineage)
 
-    os.makedirs(args.output_dir, exist_ok=True)
+    n_proteins = 0
+    taxid = ""
 
     if clusters:
         if args.max_clusters:
@@ -199,11 +208,21 @@ def main():
 
             time.sleep(WAIT)
 
-        taxa_folders = glob.glob("*_sequences")
-        for folder in taxa_folders:
+        for folder in glob.glob("*_sequences"):
             taxid = str(folder).split('_')[0]
-            create_combined_fa(taxid, folder)
-            shutil.move(folder, os.path.join(args.output_dir, folder))
+            n_proteins += create_combined_fa(taxid, folder)
+
+    #   trace the sample and produce no output directory rather than publish too few proteins
+    if n_proteins < args.min_proteins:
+        logging.warning(f"Dropping {args.sample_id}: {n_proteins} proteins, minimum is {args.min_proteins}")
+        with open('low_proteins.csv', 'w') as trace:
+            trace.write(f"{args.sample_id},{taxid},{n_proteins}\n")
+        return
+
+    logging.info(f"Found {n_proteins} proteins in OrthoDB")
+    os.makedirs(args.output_dir, exist_ok=True)
+    for folder in glob.glob("*_sequences"):
+        shutil.move(folder, os.path.join(args.output_dir, folder))
 
 if __name__ == "__main__":
     main()
